@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="th">
+<head>
+ <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#192528">
+ <meta name="description" content="Explore a house, step into three imperfect memories, and uncover the truth of a family’s last dinner. A short browser mystery in Thai and English.">
+ <title>The Last Dinner · บ้านที่จำได้</title>
+ <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='10' fill='%23192528'/%3E%3Cpath d='M12 9h16L13 31h14L12 9' fill='none' stroke='%23e2bf7a' stroke-width='2'/%3E%3C/svg%3E">
+ <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+ <a class="skip-link" href="#panel" data-th="ไปที่แผงสำรวจ" data-en="Skip to exploration">ไปที่แผงสำรวจ</a>
+ <header>
+  <a class="brand" href="/" aria-label="The Last Dinner"><span class="brand-mark">⌛</span><span>THE LAST DINNER<small>A HOUSE OF MEMORIES</small></span></a>
+  <div class="header-center"><span class="live-dot"></span><span id="mode-label">ปัจจุบัน</span><span class="divider"></span><span id="clock-label">19:40</span></div>
+  <nav aria-label="Game controls"><button id="sound" aria-label="Toggle sound" aria-pressed="false">♫ <span data-th="เสียงปิด" data-en="Sound off">เสียงปิด</span></button><button id="language" aria-label="Change language">EN</button><button id="settings" aria-label="Settings">⚙</button><button id="help" aria-label="Instructions and hints">?</button></nav>
+ </header>
+ <main>
+  <section id="world" aria-label="Interactive house">
+   <canvas id="scene" aria-label="Isometric house with four rooms and three residents"></canvas>
+   <div class="chapter"><span class="eyebrow" data-th="คืนสุดท้าย / ก่อนส่งกุญแจ" data-en="THE LAST NIGHT / BEFORE THE KEYS CHANGE HANDS">คืนสุดท้าย / ก่อนส่งกุญแจ</span><h1 data-th="บ้านที่จำได้" data-en="The house remembers.">บ้านที่จำได้</h1><p data-th="อดีตเดียวกัน ความทรงจำคนละเรื่อง" data-en="One evening. Three versions of the truth.">อดีตเดียวกัน ความทรงจำคนละเรื่อง</p></div>
+   <div id="hotspots"></div><div id="memory-banner" hidden></div>
+   <div class="scene-footer"><span id="scene-hint"></span><button id="pause" aria-pressed="false">Ⅱ หยุดเวลา</button></div>
+   <div id="memory-controls" hidden></div><div class="room-nav" id="room-nav" aria-label="Choose a room"></div>
+   <div id="webgl-error" hidden></div>
+  </section>
+  <aside>
+   <div class="tabs" role="tablist" aria-label="Notebook"><button class="active" id="tab-story" role="tab" aria-selected="true" aria-controls="panel" data-th="สำรวจ" data-en="Explore">สำรวจ</button><button id="tab-journal" role="tab" aria-selected="false" aria-controls="panel"><span data-th="หลักฐาน" data-en="Evidence">หลักฐาน</span> <span id="evidence-count">0</span></button></div>
+   <div id="panel" tabindex="-1" role="tabpanel" aria-live="polite"></div>
+   <div class="case-progress"><small id="save-label">บันทึกในเครื่อง</small><div><span data-th="ประกอบคืนสุดท้าย" data-en="RECONSTRUCT THE EVENING">ประกอบคืนสุดท้าย</span><b id="progress-count">0 / 6</b></div><div class="progress-track"><i id="progress-bar"></i></div><button id="deduce">ประกอบเหตุการณ์</button></div>
+  </aside>
+ </main>
+ <div id="toast" role="status"></div>
+ <dialog id="intro" aria-labelledby="intro-title">
+  <div class="modal-kicker">THE LAST DINNER / A HOUSE OF MEMORIES</div>
+  <h2 id="intro-title" data-th="ก่อนบ้านหลังนี้<br>จะเหลือเพียงความทรงจำ" data-en="Before this house<br>becomes a memory.">ก่อนบ้านหลังนี้<br>จะเหลือเพียงความทรงจำ</h2>
+  <p data-th="ห้าปีก่อน มีราออกจากบ้านหลังอาหารค่ำ ในคืนเดียวกับที่เงินของครอบครัวหายไป พรุ่งนี้บ้านจะถูกขาย มีคนว่าจ้างคุณให้ค้นหาว่าเกิดอะไรขึ้นจริง" data-en="Five years ago, Mira left after dinner. The family’s money went missing that same night. Tomorrow, the house will be sold. An anonymous client asks you to find what really happened.">ห้าปีก่อน มีราออกจากบ้านหลังอาหารค่ำ ในคืนเดียวกับที่เงินของครอบครัวหายไป พรุ่งนี้บ้านจะถูกขาย มีคนว่าจ้างคุณให้ค้นหาว่าเกิดอะไรขึ้นจริง</p>
+  <div class="intro-steps"><span><b>01</b><span data-th="สำรวจบ้านและนำหลักฐานไปถาม" data-en="Explore. Show the evidence.">สำรวจบ้านและนำหลักฐานไปถาม</span></span><span><b>02</b><span data-th="เข้าสู่ความทรงจำ แล้วหาสิ่งที่ขาดไป" data-en="Step into memories. Find what is missing.">เข้าสู่ความทรงจำ แล้วหาสิ่งที่ขาดไป</span></span><span><b>03</b><span data-th="ประกอบความจริงและเลือกวิธีบอกมัน" data-en="Reconstruct the truth. Choose how to tell it.">ประกอบความจริงและเลือกวิธีบอกมัน</span></span></div>
+  <button id="begin" class="primary" data-th="ก้าวเข้าบ้าน" data-en="Enter the house">ก้าวเข้าบ้าน</button>
+  <small data-th="คดีสั้นหนึ่งคดี · บันทึกในเครื่อง · ไม่มีเวลานับถอยหลัง · คำใบ้ ?" data-en="One short case · Saved on this device · No countdown · ? for hints">คดีสั้นหนึ่งคดี · บันทึกในเครื่อง · ไม่มีเวลานับถอยหลัง · คำใบ้ ?</small>
+ </dialog>
+ <dialog id="case-dialog" aria-label="Case and settings"></dialog>
+ <script type="module" src="/app.js"></script>
+</body>
+</html>

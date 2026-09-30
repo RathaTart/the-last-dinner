@@ -1,0 +1,22 @@
+{
+  "name": "the-last-dinner",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node tools/build.mjs && node --env-file-if-exists=.env server.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "build": "node tools/build.mjs",
+    "deploy:aws": "node tools/deploy-aws.mjs"
+  },
+  "dependencies": {
+    "@aws-sdk/client-bedrock-runtime": "3.1144.0",
+    "@aws-sdk/client-dynamodb": "3.1144.0",
+    "@aws-sdk/lib-dynamodb": "3.1144.0",
+    "three": "0.180.0"
+  },
+  "devDependencies": {
+    "@aws-sdk/client-pricing-plan-manager": "3.1144.0",
+    "esbuild": "0.28.2"
+  },
+  "version": "1.0.0-rc.1"
+}

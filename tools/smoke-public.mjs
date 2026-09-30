@@ -1,0 +1,31 @@
+import {createHash} from 'node:crypto';
+import {readFile,writeFile} from 'node:fs/promises';
+import {spawnSync} from 'node:child_process';
+const config=JSON.parse(await readFile('deployment.local.json','utf8'));
+if(config.Account!=='541099637009')throw Error('Account mismatch');
+const checks=[];
+async function get(path,status){const r=await fetch(config.URL+path);checks.push({path,status:r.status,expected:status,pass:r.status===status});return r;}
+const html=await (await get('/',200)).text();
+checks.push({name:'browser cache version',pass:/app\.js\?v=[a-f0-9]{16}/.test(html)&&/style\.css\?v=[a-f0-9]{16}/.test(html)});
+await get('/assets/characters/character-a.glb',200);
+await get('/assets/characters/Textures/texture-a.png',200);
+await get('/assets/fonts/noto-thai.ttf',200);
+await get('/api/health',200);
+const status=await (await get('/api/status',200)).json();
+await get('/.env',403);
+async function dialogue(data,expected,headers={}){const body=JSON.stringify(data);const r=await fetch(config.URL+'/api/dialogue',{method:'POST',headers:{'Content-Type':'application/json','x-amz-content-sha256':createHash('sha256').update(body).digest('hex'),...headers},body});checks.push({name:'dialogue '+(data.person||'invalid'),status:r.status,expected,pass:r.status===expected});return r;}
+await dialogue({person:'unknown',question:'hello'},400);
+await dialogue({person:'father',question:'Hello' },403,{'origin':'https://example.org','sec-fetch-site':'cross-site'});
+const pivotal=await (await dialogue({person:'sister',question:'Who stole the money?',language:'en',evidence:[]},200)).json();
+checks.push({name:'critical question stays authored',pass:pivotal.mode==='authored'});
+const aiResponse=await dialogue({person:'cook',question:'คุณรู้สึกอย่างไรกับบ้านหลังนี้?',language:'th',evidence:[]},200);
+const cookie=aiResponse.headers.get('set-cookie')||'',answer=await aiResponse.json();
+checks.push({name:'signed private cookie flags',pass:/HttpOnly/.test(cookie)&&/SameSite=Strict/.test(cookie)&&/Secure/.test(cookie)});
+checks.push({name:'live AI dialogue',pass:answer.mode==='ai-act',mode:answer.mode});
+const urlResult=spawnSync('aws',['lambda','get-function-url-config','--function-name',config.FunctionName,'--profile','codex-tart','--region','us-east-1','--query','FunctionUrl','--output','text'],{encoding:'utf8'});
+if(urlResult.status!==0)throw Error(urlResult.stderr);
+const direct=await fetch(urlResult.stdout.trim()+'api/health');checks.push({name:'anonymous Lambda URL denied',pass:direct.status===403,status:direct.status});
+const s3=await fetch(`https://${config.Bucket}.s3.us-east-1.amazonaws.com/index.html`);checks.push({name:'anonymous S3 denied',pass:s3.status===403,status:s3.status});
+const report={date:new Date().toISOString(),url:config.URL,release:config.Release,status,checks,pass:checks.every(c=>c.pass)};
+await writeFile('docs/PUBLIC-SMOKE.json',JSON.stringify(report,null,2));
+console.log(JSON.stringify(report,null,2));if(!report.pass)process.exitCode=1;

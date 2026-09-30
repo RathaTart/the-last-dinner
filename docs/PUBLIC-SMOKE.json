@@ -1,0 +1,106 @@
+{
+  "date": "2026-09-30T21:46:25.807Z",
+  "url": "https://d3imrhbpvqr1t2.cloudfront.net",
+  "release": "rc1-2026-09-30T21-45-40-117Z",
+  "status": {
+    "dialogue": "llm",
+    "provider": "Amazon Bedrock",
+    "version": "1.0.0-rc.1"
+  },
+  "checks": [
+    {
+      "path": "/",
+      "status": 200,
+      "expected": 200,
+      "pass": true
+    },
+    {
+      "name": "browser cache version",
+      "pass": true
+    },
+    {
+      "path": "/assets/characters/character-a.glb",
+      "status": 200,
+      "expected": 200,
+      "pass": true
+    },
+    {
+      "path": "/assets/characters/Textures/texture-a.png",
+      "status": 200,
+      "expected": 200,
+      "pass": true
+    },
+    {
+      "path": "/assets/fonts/noto-thai.ttf",
+      "status": 200,
+      "expected": 200,
+      "pass": true
+    },
+    {
+      "path": "/api/health",
+      "status": 200,
+      "expected": 200,
+      "pass": true
+    },
+    {
+      "path": "/api/status",
+      "status": 200,
+      "expected": 200,
+      "pass": true
+    },
+    {
+      "path": "/.env",
+      "status": 403,
+      "expected": 403,
+      "pass": true
+    },
+    {
+      "name": "dialogue unknown",
+      "status": 400,
+      "expected": 400,
+      "pass": true
+    },
+    {
+      "name": "dialogue father",
+      "status": 403,
+      "expected": 403,
+      "pass": true
+    },
+    {
+      "name": "dialogue sister",
+      "status": 200,
+      "expected": 200,
+      "pass": true
+    },
+    {
+      "name": "critical question stays authored",
+      "pass": true
+    },
+    {
+      "name": "dialogue cook",
+      "status": 200,
+      "expected": 200,
+      "pass": true
+    },
+    {
+      "name": "signed private cookie flags",
+      "pass": true
+    },
+    {
+      "name": "live AI dialogue",
+      "pass": true,
+      "mode": "ai-act"
+    },
+    {
+      "name": "anonymous Lambda URL denied",
+      "pass": true,
+      "status": 403
+    },
+    {
+      "name": "anonymous S3 denied",
+      "pass": true,
+      "status": 403
+    }
+  ],
+  "pass": true
+}

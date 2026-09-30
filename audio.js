@@ -1,0 +1,8 @@
+// Original synthesized score and ambience. No external recordings or tracking.
+export function createAudio(){
+ let ctx,master,music,fx,timer,enabled=false,step=0,memory=false,ending=false;
+ const melody=[196,246.94,293.66,246.94,174.61,220,261.63,220,164.81,196,246.94,196,146.83,196,220,0];
+ function tone(freq,when,duration,volume=.035,type='sine',bus=music){if(!freq||!ctx)return;const o=ctx.createOscillator(),g=ctx.createGain();o.type=type;o.frequency.value=freq;o.connect(g);g.connect(bus);g.gain.setValueAtTime(.0001,when);g.gain.exponentialRampToValueAtTime(volume,when+.025);g.gain.exponentialRampToValueAtTime(.0001,when+duration);o.start(when);o.stop(when+duration+.05);}
+ function tick(){if(!enabled||document.hidden)return;const now=ctx.currentTime;const note=melody[step++%melody.length]*(memory?.75:ending?1.12:1);tone(note,now,1.6,.025);if(step%4===1){tone(note/2,now,3,.014);tone(note*1.5,now+.12,2,.007);}tone(1500,now,.045,.009,'triangle',fx);}
+ return {async setEnabled(value){enabled=value;if(value){ctx??=new AudioContext();if(!master){master=ctx.createGain();master.connect(ctx.destination);music=ctx.createGain();music.gain.value=.6;music.connect(master);fx=ctx.createGain();fx.gain.value=.7;fx.connect(master);}await ctx.resume();clearInterval(timer);timer=setInterval(tick,900);tick();}else{clearInterval(timer);await ctx?.suspend();}},setVolumes(m,s){if(music)music.gain.value=m;if(fx)fx.gain.value=s;},setMemory(v){memory=v;},setEnding(v){ending=v;},chime(){if(!enabled)return;[440,660,880].forEach((f,i)=>tone(f,ctx.currentTime+i*.12,.7,.045,'sine',fx));},dispose(){clearInterval(timer);ctx?.close();}};
+}
