@@ -1,0 +1,145 @@
+{
+  "date": "2026-10-01T12:19:25.449Z",
+  "sampleRate": 44100,
+  "seconds": 4,
+  "baseline": "v1.0.0-rc.7",
+  "checks": [
+    {
+      "case": "preview",
+      "before": {
+        "rms": 0.003305256665242264,
+        "activeRms": 0.0042495581907104575,
+        "peak": 0.022747650742530823,
+        "nonzeroSamples": 106714
+      },
+      "after": {
+        "rms": 0.025508069948919018,
+        "activeRms": 0.030931789129245584,
+        "peak": 0.15623940527439117,
+        "nonzeroSamples": 119962
+      },
+      "gainDb": 17.74944819136682,
+      "pass": true
+    },
+    {
+      "case": "wood walking",
+      "before": {
+        "rms": 0.00026801724559332167,
+        "activeRms": 0.0015168914093899662,
+        "peak": 0.007894067093729973,
+        "nonzeroSamples": 5507
+      },
+      "after": {
+        "rms": 0.0043643813050688405,
+        "activeRms": 0.024689788675682646,
+        "peak": 0.09743031114339828,
+        "nonzeroSamples": 5512
+      },
+      "gainDb": 24.23519894301856,
+      "pass": true
+    },
+    {
+      "case": "stone walking",
+      "before": {
+        "rms": 0.00023625161360838105,
+        "activeRms": 0.0014250915608143434,
+        "peak": 0.006543285679072142,
+        "nonzeroSamples": 4848
+      },
+      "after": {
+        "rms": 0.003812598473955292,
+        "activeRms": 0.022993203911241808,
+        "peak": 0.08965122699737549,
+        "nonzeroSamples": 4850
+      },
+      "gainDb": 24.156925725259633,
+      "pass": true
+    },
+    {
+      "case": "rug walking",
+      "before": {
+        "rms": 0.00016387176423298972,
+        "activeRms": 0.000966796604873674,
+        "peak": 0.0036893836222589016,
+        "nonzeroSamples": 5068
+      },
+      "after": {
+        "rms": 0.0024847226611191707,
+        "activeRms": 0.014657707996118185,
+        "peak": 0.04786548390984535,
+        "nonzeroSamples": 5069
+      },
+      "gainDb": 23.615475830525845,
+      "pass": true
+    },
+    {
+      "case": "rug crouching",
+      "before": {
+        "rms": 0.0000659417799011121,
+        "activeRms": 0.00038896092667239175,
+        "peak": 0.001303545432165265,
+        "nonzeroSamples": 5070
+      },
+      "after": {
+        "rms": 0.000865416990907422,
+        "activeRms": 0.005105209424816263,
+        "peak": 0.016283374279737473,
+        "nonzeroSamples": 5069
+      },
+      "gainDb": 22.361295041844702,
+      "pass": true
+    },
+    {
+      "case": "music",
+      "before": {
+        "rms": 0.0014207679077454024,
+        "activeRms": 0.0016919807085830844,
+        "peak": 0.010623597539961338,
+        "nonzeroSamples": 124381
+      },
+      "after": {
+        "rms": 0.006695647021352791,
+        "activeRms": 0.007973501992701318,
+        "peak": 0.03982612118124962,
+        "nonzeroSamples": 124390
+      },
+      "gainDb": 13.46538823790841,
+      "pass": true
+    },
+    {
+      "case": "silent effects",
+      "before": {
+        "rms": 0,
+        "activeRms": 0,
+        "peak": 0,
+        "nonzeroSamples": 0
+      },
+      "after": {
+        "rms": 0,
+        "activeRms": 0,
+        "peak": 0,
+        "nonzeroSamples": 0
+      },
+      "gainDb": null,
+      "pass": true
+    },
+    {
+      "case": "overlap stress",
+      "before": {
+        "rms": 0.006523432404634239,
+        "activeRms": 0.009503147386519712,
+        "peak": 0.06874139606952667,
+        "nonzeroSamples": 83122
+      },
+      "after": {
+        "rms": 0.04029779906446678,
+        "activeRms": 0.05870431339693255,
+        "peak": 0.46678540110588074,
+        "nonzeroSamples": 83123
+      },
+      "gainDb": 15.816103208274278,
+      "pass": true
+    }
+  ],
+  "pass": true
+}

@@ -42,3 +42,4 @@ html,body{width:100%;height:100%;overflow:hidden}body{background:#0b1016}main{di
 [hidden]{display:none!important}
 #case-dialog [data-test-sounds]{display:block;width:100%;margin-top:16px;color:var(--mint);border-color:#a4ccbd44}
 #case-dialog [data-test-sounds]+small{display:block;margin-top:9px;color:var(--muted);font-size:12px;line-height:1.7}
+.sound-status{margin-top:12px;color:var(--mint);font-size:12px}.sound-status meter{display:block;width:100%;height:8px;margin-top:7px}.sound-status meter::-webkit-meter-optimum-value{background:var(--mint)}

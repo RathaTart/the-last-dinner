@@ -23,6 +23,7 @@ class FakeContext{
  constructor(){this.state='suspended';this.currentTime=0;this.sampleRate=1000;this.nodes=[];this.sources=[];this.buffers=[];this.resumeCalls=0;this.suspendCalls=0;this.destination={kind:'destination'};}
  createGain(){const node=new Node(this,'gain');node.gain=new Param(1);return node;}
  createDynamicsCompressor(){const node=new Node(this,'limiter');for(const name of ['threshold','knee','ratio','attack','release'])node[name]=new Param();return node;}
+ createAnalyser(){const node=new Node(this,'analyser');node.getFloatTimeDomainData=data=>{const samples=node.signalSamples??this.signalSamples;for(let i=0;i<data.length;i++)data[i]=samples?.[i%samples.length]??0;};return node;}
  createOscillator(){return new Source(this,'oscillator');}
  createBufferSource(){return new Source(this,'noise');}
  createBiquadFilter(){const node=new Node(this,'filter');node.frequency=new Param();node.Q=new Param();return node;}
@@ -32,8 +33,8 @@ class FakeContext{
  async close(){this.state='closed';}
 }
 function harness(context=new FakeContext()){
- const intervals=new Map();let id=0,hidden=false,created=0;
- const audio=createAudio({contextFactory:()=>{created++;return context;},isHidden:()=>hidden,random:()=>.5,scheduleInterval:fn=>{intervals.set(++id,fn);return id;},cancelInterval:id=>intervals.delete(id)});
+ const intervals=new Map();let id=0,hidden=false,created=0,randomStep=0;
+ const audio=createAudio({contextFactory:()=>{created++;return context;},isHidden:()=>hidden,random:()=>++randomStep%2?.25:.75,scheduleInterval:fn=>{intervals.set(++id,fn);return id;},cancelInterval:id=>intervals.delete(id)});
  return {audio,context,intervals,created:()=>created,setDocumentHidden:value=>hidden=value};
 }
 
@@ -46,7 +47,7 @@ test('sound stays lazy and mute cannot allocate or count effects',async()=>{
 test('volumes are remembered before initialization and every effect reaches the effects bus',async()=>{
  const h=harness();h.audio.setVolumes(0,.28);await h.audio.setEnabled(true);
  assert.equal(h.intervals.size,0);const gains=h.context.nodes.filter(n=>n.kind==='gain'),[master,music,fx]=gains;
- assert.equal(music.gain.value,0);assert.equal(fx.gain.value,.28);assert.equal(master.gain.value,.68);
+ assert.equal(music.gain.value,0);assert.equal(fx.gain.value,.28);assert.equal(master.gain.value,.8);
  assert.equal(h.audio.play('inspect'),true);assert.equal(h.audio.getStatus().played,1);assert.equal(h.audio.getStatus().lastEffect,'inspect');
  const envelopes=h.context.nodes.filter(n=>n.kind==='gain').slice(3);assert.equal(envelopes.length,2);
  for(const envelope of envelopes)assert.deepEqual(envelope.connections,[fx]);
@@ -84,7 +85,7 @@ test('document-hidden guard rejects new effects before visibility reconciliation
 test('one shared noise buffer, bounded source budget, and natural ending cleanup',async()=>{
  const h=harness();h.audio.setVolumes(0,.65);await h.audio.setEnabled(true);
  for(let i=0;i<80;i++){h.context.currentTime+=.13;assert.equal(h.audio.play('footstep',{surface:'wood',stair:true,mode:'run'}),true);assert.ok(h.audio.getStatus().activeVoices<=24);}
- assert.equal(h.context.buffers.length,1);for(const source of h.context.sources.filter(s=>s.kind==='noise'))assert.equal(source.buffer,h.context.buffers[0]);
+ assert.equal(h.context.buffers.length,1);assert.ok(h.context.buffers[0].getChannelData(0).some(value=>value!==0),'shared transient buffer contains nonzero samples');for(const source of h.context.sources.filter(s=>s.kind==='noise'))assert.equal(source.buffer,h.context.buffers[0]);
  assert.equal(h.audio.getStatus().activeVoices,24);assert.ok(h.context.sources[0].disconnected,'oldest voices are disconnected under budget pressure');
  for(const source of h.context.sources)source.finish();assert.equal(h.audio.getStatus().activeVoices,0);
  assert.ok(h.context.nodes.filter(n=>['oscillator','noise','filter'].includes(n.kind)).every(n=>n.disconnected));await h.audio.dispose();
@@ -128,7 +129,7 @@ test('failed resume reports disabled and can be retried using the same context',
 
 test('every authored cue schedules bounded effects and rejected names cannot allocate',async()=>{
  const h=harness();h.audio.setVolumes(0,.6);await h.audio.setEnabled(true);
- const names=['bagOpen','bagClose','inspect','success','error','door','secretUnlock','memoryEnter','memoryExit','memoryStep','stance','ending','intro','preview'];
+ const names=['bagOpen','bagClose','inspect','success','error','door','secretUnlock','memoryEnter','memoryExit','memoryStep','stance','ending','intro','testTone','preview'];
  for(const name of names){h.context.currentTime+=4;assert.equal(h.audio.play(name,{step:2,crouched:true,id:'distance'}),true,name);assert.equal(h.audio.getStatus().lastEffect,name);assert.ok(h.audio.getStatus().activeVoices<=24);}
  for(const step of [0,1,3]){h.context.currentTime+=4;assert.equal(h.audio.play('intro',{step}),true);}
  for(const id of ['letter','reunion']){h.context.currentTime+=4;assert.equal(h.audio.play('ending',{id}),true);}
@@ -148,11 +149,65 @@ test('the tape knock cue uses six paired impacts grouped three, one, two',async(
  assert.equal(h.audio.play('intro',{step:3}),true);
  const knocks=[0,.16,.32,.8,1.28,1.44],tones=h.context.sources.filter(s=>s.kind==='oscillator'),noise=h.context.sources.filter(s=>s.kind==='noise');
  assert.equal(tones.length,6);assert.equal(noise.length,6);
- const onsets=tones.map(source=>source.starts[0]-2);
+ assert.ok(tones[0].starts[0]>=2.02&&tones[0].starts[0]<=2.04);
+ const onsets=tones.map(source=>source.starts[0]-tones[0].starts[0]);
  for(let i=0;i<knocks.length;i++){
   assert.ok(Math.abs(onsets[i]-knocks[i])<1e-9);assert.equal(noise[i].starts[0],tones[i].starts[0],'each impact pairs the low knock and its wood transient');
  }
  const groups=[];for(const onset of onsets){if(!groups.length||onset-groups.at(-1).at(-1)>.3)groups.push([]);groups.at(-1).push(onset);}
  assert.deepEqual(groups.map(group=>group.length),[3,1,2]);assert.equal(h.audio.getStatus().activeVoices,12);assert.ok(h.audio.getStatus().activeVoices<=24);
  await h.audio.dispose();
+});
+
+test('preview starts with clear midrange reference tones and bounded held envelopes',async()=>{
+ const h=harness();h.audio.setVolumes(0,.65);await h.audio.setEnabled(true);assert.equal(h.audio.play('preview'),true);
+ const reference=h.context.sources.slice(0,2);assert.deepEqual(reference.map(source=>source.frequency.events[0].value),[660,880]);assert.ok(reference[0].starts[0]>=.02&&reference[0].starts[0]<=.04);assert.ok(Math.abs(reference[1].starts[0]-reference[0].starts[0]-.2)<1e-9);
+ const envelopes=h.context.nodes.filter(node=>node.kind==='gain').slice(3),first=envelopes[0];
+ const peak=Math.max(...first.gain.events.filter(event=>event.kind==='ramp').map(event=>event.value));
+ assert.ok(peak*.65*.8>.08,'the reference has a useful default digital peak before compression');
+ assert.ok(first.gain.events.some(event=>event.kind==='set'&&event.value===peak&&event.time>reference[0].starts[0]+.018),'a held body prevents an immediately vanishing reference');
+ for(const envelope of envelopes)assert.ok(envelope.gain.events.every(event=>event.value===undefined||event.value<=.26),'per-voice headroom remains bounded');
+ assert.ok(h.audio.getStatus().activeVoices<=24);await h.audio.dispose();
+});
+
+test('RMS and peak read after the limiter and are cleared on mute, hidden and disposal',async()=>{
+ const h=harness();h.audio.setVolumes(0,.6);await h.audio.setEnabled(true);
+ const master=h.context.nodes.find(node=>node.kind==='gain'),limiter=h.context.nodes.find(node=>node.kind==='limiter'),analyser=h.context.nodes.find(node=>node.kind==='analyser');
+ assert.deepEqual(master.connections,[limiter]);assert.deepEqual(limiter.connections,[analyser]);assert.deepEqual(analyser.connections,[h.context.destination]);assert.equal(analyser.fftSize,1024);
+ h.context.signalSamples=[.2,-.2,.1,-.1];assert.equal(h.audio.getStatus().rms,.158114);assert.equal(h.audio.getStatus().peak,.2);
+ await h.audio.setHidden(true);assert.equal(h.audio.getStatus().rms,0);assert.equal(h.audio.getStatus().peak,0);
+ await h.audio.setHidden(false);assert.equal(h.audio.getStatus().peak,.2);await h.audio.setEnabled(false);assert.equal(h.audio.getStatus().rms,0);
+ await h.audio.dispose();assert.ok(analyser.disconnected);assert.equal(h.audio.getStatus().peak,0);
+});
+
+test('the effects meter is isolated from music and measures after FX volume before master',async()=>{
+ const h=harness();await h.audio.setEnabled(true);
+ const [master,music,fx]=h.context.nodes.filter(node=>node.kind==='gain'),effectsMeter=fx.connections[0];
+ assert.equal(effectsMeter.kind,'analyser');assert.deepEqual(effectsMeter.connections,[master]);assert.deepEqual(music.connections,[master]);assert.equal(effectsMeter.fftSize,1024);
+ h.context.signalSamples=[.1,-.1];effectsMeter.signalSamples=[0];
+ assert.equal(h.audio.getStatus().rms,.1);assert.equal(h.audio.getStatus().effectsRms,0,'music cannot masquerade as effects output');
+ effectsMeter.signalSamples=[.3,-.3,.1,-.1];assert.equal(h.audio.getStatus().effectsPeak,.3);assert.equal(h.audio.getStatus().effectsRms,.223607);
+ h.audio.setVolumes(.45,0);assert.equal(h.audio.getStatus().effectsPeak,0);assert.equal(h.audio.getStatus().rms,.1);
+ h.audio.setVolumes(.45,.65);await h.audio.setHidden(true);assert.equal(h.audio.getStatus().effectsRms,0);
+ await h.audio.setHidden(false);assert.equal(h.audio.getStatus().effectsPeak,.3);await h.audio.setEnabled(false);assert.equal(h.audio.getStatus().effectsPeak,0);
+ await h.audio.dispose();assert.ok(effectsMeter.disconnected);assert.equal(h.audio.getStatus().effectsRms,0);
+});
+
+test('slow node allocation cannot expire short effects or split tone, noise and envelope timing',async()=>{
+ const context=new FakeContext(),h=harness(context);h.audio.setVolumes(0,.65);await h.audio.setEnabled(true);
+ for(const method of ['createOscillator','createBufferSource','createBiquadFilter','createGain']){
+  const original=context[method].bind(context);context[method]=()=>{context.currentTime+=.05;return original();};
+ }
+ const requestedAt=context.currentTime;assert.equal(h.audio.play('footstep',{surface:'stone'}),true);
+ const allocationFinished=context.currentTime,tone=context.sources[0],noise=context.sources[1];
+ assert.ok(allocationFinished-requestedAt>.2,'test advances beyond the old short transient stop time');
+ assert.equal(tone.starts[0],noise.starts[0],'all parts receive one uniform shift');
+ assert.ok(tone.starts[0]>=allocationFinished+.02&&tone.starts[0]<=allocationFinished+.04);
+ for(const source of [tone,noise]){
+  assert.ok(source.stops[0]>source.starts[0]);assert.ok(source.stops[0]>allocationFinished);
+  const envelope=source.kind==='oscillator'?source.connections[0]:source.connections[0].connections[0];
+  assert.equal(envelope.gain.events[0].time,source.starts[0]);assert.ok(envelope.gain.events.every(event=>event.time>=source.starts[0]));
+ }
+ assert.equal(tone.frequency.events[0].time,tone.starts[0]);assert.ok(Math.abs(tone.frequency.events.at(-1).time-tone.starts[0]-.085)<1e-9);
+ assert.ok(h.audio.getStatus().maxScheduleLateMs>=250);assert.ok(h.audio.getStatus().activeVoices<=24);await h.audio.dispose();
 });

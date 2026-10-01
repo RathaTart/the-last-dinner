@@ -22,6 +22,7 @@ checks.push({name:'minimal play screen has bag and stance controls',pass:html.in
 checks.push({name:'continuous staircase guidance',pass:html.includes('Shift to run')&&html.includes('C to crouch')&&bundle.includes('Walk up the grand staircase')});
 checks.push({name:'sound preview and separate effects settings',pass:bundle.includes('Test sounds')&&bundle.includes('Effects volume')&&bundle.includes('data-test-sounds')});
 checks.push({name:'movement and memory sound effects included',pass:bundle.includes('soundSurface')&&bundle.includes('memoryEnter')&&bundle.includes('secretUnlock')&&bundle.includes('soundEnabled')});
+checks.push({name:'isolated effects preview and signal meter',pass:bundle.includes('sound-meter')&&bundle.includes('soundPreviewEffectsPeak')&&bundle.includes('Music pauses briefly')&&bundle.includes('Effects signal level')});
 await get('/api/health',200);
 const status=await (await get('/api/status',200)).json();
 const expectedVersion=JSON.parse(await readFile('package.json','utf8')).version;

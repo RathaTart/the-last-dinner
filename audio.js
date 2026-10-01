@@ -6,9 +6,9 @@ export function createAudio({
  cancelInterval=id=>globalThis.clearInterval(id),
  random=Math.random
 }={}){
- const MAX_VOICES=24,melody=[196,246.94,293.66,246.94,174.61,220,261.63,220,164.81,196,246.94,196,146.83,196,220,0];
- let ctx,master,music,fx,limiter,noiseBuffer,timer=null,enabled=false,disposed=false,hiddenOverride=false;
- let generation=0,step=0,memory=false,ending=false,musicVolume=.45,effectsVolume=.65,played=0,lastEffect=null;
+ const MAX_VOICES=24,FX_LOOKAHEAD=.03,MASTER_GAIN=.8,FX_SCALE=4.2,MUSIC_SCALE=2.4,melody=[196,246.94,293.66,246.94,174.61,220,261.63,220,164.81,196,246.94,196,146.83,196,220,0];
+ let ctx,master,music,fx,limiter,analyser,effectsAnalyser,meterSamples,effectsSamples,noiseBuffer,timer=null,enabled=false,disposed=false,hiddenOverride=false;
+ let generation=0,step=0,memory=false,ending=false,musicVolume=.45,effectsVolume=.65,played=0,lastEffect=null,effectPlans=null,maxScheduleLateMs=0;
  const voices=new Set(),lastPlayed=new Map();
  const hidden=()=>hiddenOverride||isHidden(),canRun=()=>enabled&&!disposed&&!hidden();
  const clamp=(value,min,max,fallback)=>Number.isFinite(Number(value))?Math.max(min,Math.min(max,Number(value))):fallback;
@@ -18,28 +18,36 @@ export function createAudio({
  function stopVoice(voice){try{voice.source.stop(ctx.currentTime);}catch{}cleanup(voice);}
  function stopVoices(bus){for(const voice of [...voices])if(!bus||voice.bus===bus)stopVoice(voice);}
  function stopTimer(){if(timer!==null){cancelInterval(timer);timer=null;}}
- function silence(){stopTimer();setGain(master,0);stopVoices();lastPlayed.clear();}
+ function silence(){stopTimer();setGain(master,0);stopVoices();lastPlayed.clear();meterSamples?.fill(0);effectsSamples?.fill(0);}
  function initialize(){
-  ctx=contextFactory();master=ctx.createGain();music=ctx.createGain();fx=ctx.createGain();limiter=ctx.createDynamicsCompressor();
+  ctx=contextFactory();master=ctx.createGain();music=ctx.createGain();fx=ctx.createGain();limiter=ctx.createDynamicsCompressor();analyser=ctx.createAnalyser();effectsAnalyser=ctx.createAnalyser();
   master.gain.value=0;music.gain.value=musicVolume;fx.gain.value=effectsVolume;
-  limiter.threshold.value=-14;limiter.knee.value=8;limiter.ratio.value=4;limiter.attack.value=.003;limiter.release.value=.18;
-  music.connect(master);fx.connect(master);master.connect(limiter);limiter.connect(ctx.destination);
+  limiter.threshold.value=-12;limiter.knee.value=9;limiter.ratio.value=8;limiter.attack.value=.002;limiter.release.value=.15;
+  for(const meter of [analyser,effectsAnalyser]){meter.fftSize=1024;meter.smoothingTimeConstant=0;}
+  meterSamples=new Float32Array(analyser.fftSize);effectsSamples=new Float32Array(effectsAnalyser.fftSize);
+  music.connect(master);fx.connect(effectsAnalyser);effectsAnalyser.connect(master);master.connect(limiter);limiter.connect(analyser);analyser.connect(ctx.destination);
   noiseBuffer=ctx.createBuffer(1,Math.ceil(ctx.sampleRate*.8),ctx.sampleRate);
   const data=noiseBuffer.getChannelData(0);for(let i=0;i<data.length;i++)data[i]=(random()*2-1)*.68;
  }
- function register(source,nodes,bus,when,duration,volume,attack=.008){
+ function register(source,nodes,bus,when,duration,volume,attack=.008,configure=()=>{}){
   if(disposed||busLevel(bus)<=0){for(const node of nodes)node.disconnect();return false;}
   while(voices.size>=MAX_VOICES){const oldest=[...voices].find(v=>v.bus===music)||voices.values().next().value;stopVoice(oldest);}
   const gain=ctx.createGain();source.connect(nodes[1]||gain);if(nodes[1])nodes.at(-1).connect(gain);gain.connect(bus);
-  gain.gain.setValueAtTime(.0001,when);gain.gain.exponentialRampToValueAtTime(Math.max(.0001,volume),when+Math.min(attack,duration*.3));gain.gain.exponentialRampToValueAtTime(.0001,when+duration);
+  // Retain a short audible body rather than letting an exponential decay erase it.
+  // The calibrated source levels stay bounded; the master compressor catches overlaps.
+  const peak=Math.max(.0001,Math.min(.26,volume*(bus===music?MUSIC_SCALE:FX_SCALE))),rise=Math.min(attack,duration*.2),hold=Math.min(bus===music?.35:.05,duration*.22);
   const voice={source,nodes:[...nodes,gain],bus,cleaned:false};voices.add(voice);source.onended=()=>cleanup(voice);
-  source.start(when);source.stop(when+duration+.025);return true;
+  const schedule=start=>{
+   if(voice.cleaned)return;configure(start);
+   gain.gain.setValueAtTime(.0001,start);gain.gain.exponentialRampToValueAtTime(peak,start+rise);gain.gain.setValueAtTime(peak,start+rise+hold);gain.gain.exponentialRampToValueAtTime(.0001,start+duration);
+   source.start(start);source.stop(start+duration+.025);
+  };
+  if(bus===fx&&effectPlans)effectPlans.push({voice,when,schedule});else schedule(when);return true;
  }
  function tone(frequency,when,duration,volume=.025,type='sine',bus=fx,endFrequency=frequency){
   if(!frequency||!ctx||busLevel(bus)<=0)return false;
-  const source=ctx.createOscillator();source.type=type;source.frequency.setValueAtTime(frequency,when);
-  if(endFrequency!==frequency)source.frequency.exponentialRampToValueAtTime(Math.max(20,endFrequency),when+duration);
-  return register(source,[source],bus,when,duration,volume,.018);
+  const source=ctx.createOscillator();source.type=type;
+  return register(source,[source],bus,when,duration,volume,.018,start=>{source.frequency.setValueAtTime(frequency,start);if(endFrequency!==frequency)source.frequency.exponentialRampToValueAtTime(Math.max(20,endFrequency),start+duration);});
  }
  function noise(when,duration,volume,frequency=700,type='lowpass',q=.7){
   if(!ctx||effectsVolume<=0)return false;
@@ -50,9 +58,9 @@ export function createAudio({
  }
  function footstep(at,{surface='wood',mode='walk',stair=false}={}){
   const scale=mode==='crouch'?.34:mode==='run'?1.2:1,pitch=.97+random()*.06;
-  if(surface==='rug'){tone(88*pitch,at,.09,.017*scale,'sine',fx,48);noise(at,.08,.013*scale,450);}
-  else if(surface==='stone'){tone(94*pitch,at,.085,.026*scale,'sine',fx,46);noise(at,.055,.033*scale,1250);}
-  else{tone(142*pitch,at,.1,.034*scale,'triangle',fx,70);noise(at,.06,.024*scale,620,'bandpass',.8);if(stair)tone(215*pitch,at+.035,.16,.009*scale,'triangle',fx,145);}
+  if(surface==='rug'){tone(120*pitch,at,.09,.017*scale,'sine',fx,72);noise(at,.08,.013*scale,550);}
+  else if(surface==='stone'){tone(140*pitch,at,.085,.026*scale,'sine',fx,78);noise(at,.055,.033*scale,1450);}
+  else{tone(185*pitch,at,.1,.034*scale,'triangle',fx,100);noise(at,.06,.024*scale,850,'bandpass',.8);if(stair)tone(255*pitch,at+.035,.16,.009*scale,'triangle',fx,180);}
  }
  function cue(name,at,options={}){
   switch(name){
@@ -80,9 +88,10 @@ export function createAudio({
     const notes=options.id==='distance'?[110,116.54]:options.id==='letter'?[146.83,220]:[164.81,246.94,329.63];
     notes.forEach((f,i)=>tone(f,at+i*.18,1.5,.021-i*.003));break;
    }
+   case 'testTone':tone(660,at,.16,.05);tone(880,at+.2,.19,.04);break;
    case 'preview':
-    footstep(at,{surface:'wood'});footstep(at+.33,{surface:'stone'});footstep(at+.66,{surface:'rug',mode:'crouch'});
-    cue('bagOpen',at+.94);cue('memoryEnter',at+1.3);cue('success',at+2.35);break;
+    cue('testTone',at);footstep(at+.46,{surface:'wood'});footstep(at+.73,{surface:'stone'});footstep(at+1,{surface:'rug',mode:'crouch'});
+    cue('bagOpen',at+1.24);cue('memoryEnter',at+1.55);cue('success',at+2.5);break;
    default:return false;
   }
   return true;
@@ -98,8 +107,8 @@ export function createAudio({
   if(!ctx){
    if(!canRun())return false;
    try{initialize();}catch(error){
-    enabled=false;generation++;silence();for(const node of [music,fx,master,limiter]){try{node?.disconnect();}catch{}}
-    const failedContext=ctx;ctx=master=music=fx=limiter=noiseBuffer=undefined;try{await failedContext?.close();}catch{}throw error;
+    enabled=false;generation++;silence();for(const node of [music,fx,master,limiter,analyser,effectsAnalyser]){try{node?.disconnect();}catch{}}
+    const failedContext=ctx;ctx=master=music=fx=limiter=analyser=effectsAnalyser=meterSamples=effectsSamples=noiseBuffer=undefined;try{await failedContext?.close();}catch{}throw error;
    }
   }
   const active=canRun();if(!active)silence();
@@ -108,14 +117,28 @@ export function createAudio({
   if(disposed)return false;
   // A completed old resume/suspend must not undo the latest mute or visibility request.
   if(request!==generation||active!==canRun())return reconcile(generation);
-  if(active&&ctx.state==='running'){setGain(master,.68);startMusic();return true;}
+  if(active&&ctx.state==='running'){setGain(master,MASTER_GAIN);startMusic();return true;}
   silence();return false;
  }
- const cooldown={footstep:.08,door:.35,bagOpen:.12,bagClose:.12,inspect:.12,success:.12,error:.12,secretUnlock:.5,memoryEnter:.3,memoryExit:.2,memoryStep:.05,stance:.1,intro:.12,ending:.6,preview:3};
+ const cooldown={footstep:.08,door:.35,bagOpen:.12,bagClose:.12,inspect:.12,success:.12,error:.12,secretUnlock:.5,memoryEnter:.3,memoryExit:.2,memoryStep:.05,stance:.1,intro:.12,ending:.6,testTone:.4,preview:3.3};
  function play(name,options={}){
   if(!Object.hasOwn(cooldown,name)||!canRun()||ctx?.state!=='running'||effectsVolume<=0)return false;
   const now=ctx.currentTime;if(now-(lastPlayed.get(name)??-Infinity)<cooldown[name])return false;
-  if(!cue(name,now,options||{}))return false;lastPlayed.set(name,now);played++;lastEffect=name;return true;
+  const plans=[];effectPlans=plans;let accepted;
+  try{accepted=cue(name,now,options||{});}catch(error){for(const plan of plans)stopVoice(plan.voice);throw error;}finally{effectPlans=null;}
+  if(!accepted||!plans.some(plan=>!plan.voice.cleaned))return false;
+  // Allocate the entire cue first, then shift every event together. Short effects
+  // cannot expire during slow node creation, and the tape/preview timing stays intact.
+  const allocationDelay=Math.max(0,ctx.currentTime-now),shift=allocationDelay+FX_LOOKAHEAD;
+  maxScheduleLateMs=Math.max(maxScheduleLateMs,allocationDelay*1000);
+  for(const plan of plans)plan.schedule(plan.when+shift);
+  lastPlayed.set(name,now);played++;lastEffect=name;return true;
+ }
+ function measure(meter,samples){
+  if(!meter||!canRun()||ctx?.state!=='running')return {rms:0,peak:0};
+  meter.getFloatTimeDomainData(samples);let energy=0,peak=0;
+  for(const sample of samples){energy+=sample*sample;peak=Math.max(peak,Math.abs(sample));}
+  return {rms:Number(Math.sqrt(energy/samples.length).toFixed(6)),peak:Number(peak.toFixed(6))};
  }
  return {
   async setEnabled(value){if(disposed)return false;enabled=!!value;return reconcile(++generation);},
@@ -123,7 +146,8 @@ export function createAudio({
   setVolumes(m,s){musicVolume=clamp(m,0,1,musicVolume);effectsVolume=clamp(s,0,1,effectsVolume);setGain(music,musicVolume);setGain(fx,effectsVolume);if(musicVolume===0){stopTimer();stopVoices(music);}else if(canRun()&&ctx?.state==='running')startMusic();if(effectsVolume===0)stopVoices(fx);},
   setMemory(value){memory=!!value;},setEnding(value){ending=!!value;},
   play,chime:()=>play('success'),
-  getStatus(){return {enabled:enabled&&!disposed,state:disposed?'closed':ctx?.state??'uninitialized',played,lastEffect,activeVoices:voices.size,musicVolume,effectsVolume};},
-  async dispose(){if(disposed)return;disposed=true;enabled=false;generation++;silence();for(const node of [music,fx,master,limiter]){try{node?.disconnect();}catch{}}noiseBuffer=null;try{await ctx?.close();}catch{}}
+  // Mixed output is post-limiter; FX is post-volume but pre-master. Neither verifies speakers.
+  getStatus(){const output=measure(analyser,meterSamples),effects=effectsVolume>0?measure(effectsAnalyser,effectsSamples):{rms:0,peak:0};return {enabled:enabled&&!disposed,state:disposed?'closed':ctx?.state??'uninitialized',played,lastEffect,activeVoices:voices.size,musicVolume,effectsVolume,...output,effectsRms:effects.rms,effectsPeak:effects.peak,maxScheduleLateMs:Number(maxScheduleLateMs.toFixed(3))};},
+  async dispose(){if(disposed)return;disposed=true;enabled=false;generation++;silence();for(const node of [music,fx,master,limiter,analyser,effectsAnalyser]){try{node?.disconnect();}catch{}}noiseBuffer=meterSamples=effectsSamples=null;try{await ctx?.close();}catch{}}
  };
 }

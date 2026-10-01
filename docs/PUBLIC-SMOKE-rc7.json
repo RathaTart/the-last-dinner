@@ -1,11 +1,11 @@
 {
-  "date": "2026-10-01T12:24:35.068Z",
+  "date": "2026-10-01T11:30:20.326Z",
   "url": "https://d3imrhbpvqr1t2.cloudfront.net",
-  "release": "rc9-2026-10-01T12-23-02-207Z",
+  "release": "rc7-2026-10-01T11-28-48-952Z",
   "status": {
     "dialogue": "llm",
     "provider": "Amazon Bedrock",
-    "version": "1.0.0-rc.9"
+    "version": "1.0.0-rc.7"
   },
   "checks": [
     {
@@ -19,7 +19,7 @@
       "pass": true
     },
     {
-      "path": "/app.js?v=29530008082e2671",
+      "path": "/app.js?v=d0bc9af0246c2c82",
       "status": 200,
       "expected": 200,
       "pass": true
@@ -89,10 +89,6 @@
       "pass": true
     },
     {
-      "name": "isolated effects preview and signal meter",
-      "pass": true
-    },
-    {
       "path": "/api/health",
       "status": 200,
       "expected": 200,
@@ -106,8 +102,8 @@
     },
     {
       "name": "deployed API release version",
-      "expected": "1.0.0-rc.9",
-      "actual": "1.0.0-rc.9",
+      "expected": "1.0.0-rc.7",
+      "actual": "1.0.0-rc.7",
       "pass": true
     },
     {
