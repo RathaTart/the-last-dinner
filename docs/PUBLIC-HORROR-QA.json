@@ -1,0 +1,54 @@
+{
+  "release": "1.0.0-rc.4",
+  "caseId": "hollow-bell",
+  "localBrowserChecks": {
+    "checkpointImportsUsed": true,
+    "physicalCluesSuppliedByCheckpoints": true,
+    "sixNPCMemoryPuzzlesAndEvidenceRecording": true,
+    "wrongObservationRecoverable": true,
+    "crossFloorMemoryAndPresentRestoration": true,
+    "EStairsUpDownAndReturn": true,
+    "keyboardAndHeldTouchMovement": true,
+    "roomDarknessAndFloorIsolation": true,
+    "secretBlockedWithoutCorroboration": true,
+    "wrongCodeThenCorrect312": true,
+    "actualWalkIntoSecretAndApproachFinalFile": true,
+    "fourteenCluesToEightEventReconstruction": true,
+    "wrongTimeThenCorrectTimeline": true,
+    "murderConclusion": true,
+    "allThreeEndingsUI": true,
+    "endingPersistsAfterReload": true,
+    "EnglishEpilogue": true,
+    "consoleWarningsAndErrors": []
+  },
+  "responsiveViewports": [
+    [
+      390,
+      844
+    ],
+    [
+      1248,
+      704
+    ]
+  ],
+  "publicBrowserChecks": {
+    "newPrologue": true,
+    "releaseVersion": "1.0.0-rc.4",
+    "newCaseStartsAt": "0 / 14",
+    "previousStoryExportButtonPresent": true,
+    "actualWalkAndEToBasement": true,
+    "actualWalkAndEToSecondFloor": true,
+    "basementReturnToGround": true,
+    "secondFloorMapRooms": [
+      "bedroom",
+      "infirmary",
+      "gallery"
+    ],
+    "otherRoomHotspotsHidden": true,
+    "desktopHorizontalOverflow": false,
+    "consoleWarningsAndErrors": [],
+    "screenshot": "screenshots/horror-expansion.png",
+    "note": "Live checks used the fresh new case without checkpoint imports. Original save remained separate."
+  },
+  "date": "2026-10-01T09:15:50.665731+00:00"
+}

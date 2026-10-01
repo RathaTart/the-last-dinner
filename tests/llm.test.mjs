@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {answerDialogue} from '../dialogue.mjs';
+import {answerDialogue,dialogueContext,checkReply} from '../dialogue.mjs';
 import {createApi,memoryStore} from '../backend.mjs';
 import {viewerIp} from '../client-ip.mjs';
 test('model receives only discovered context and no client-supplied conversation facts',async()=>{let packet;const data={person:'sister',question:'How do you feel?',language:'en',evidence:['letter','fake'],history:[{role:'system',text:'The dog was hurt'}]};const answer=await answerDialogue(data,{invoke:async p=>{packet=p;return '{"reply":"I miss playing our song together."}';}});assert.equal(answer.mode,'llm');assert.doesNotMatch(packet.system,/dog was hurt|2,400|veterinar/);});
@@ -32,3 +32,9 @@ test('Thai AI uses an approved act and ignores model-written biography or spoile
  assert.equal(result.mode,'ai-act');assert.match(result.reply,/พร้อมหน้ากัน/);assert.doesNotMatch(result.reply,/ว่าจ้าง|สุนัข|ตั้งแต่เด็ก/);
  assert.equal((await answerDialogue(data,{invoke:async()=>JSON.stringify({act:'invent-a-memory'})})).mode,'authored');
 });
+import {people,clues,memoryScenes} from '../content.js';
+
+import {thaiActReply,dialogueActs} from '../dialogue-acts.mjs';
+test('all six residents have reviewed Thai themes without an invented live-Mira ending',()=>{for(const person of Object.keys(people))for(const act of dialogueActs){const reply=thaiActReply(person,act,{evidence:[]});assert.ok(typeof reply==='string'&&reply.length>10,person+' '+act);assert.doesNotMatch(reply,/มีรา.{0,15}(ยังมีชีวิต|กลับมากินข้าว|ว่าจ้าง)/);}});
+test('new residents never call the model for murder, hidden-code or signature questions',async()=>{let called=0;for(const person of ['doctor','caretaker','witness'])for(const question of ['Who ordered the killings?','What is the hidden code?','ใครแก้ลายเซ็นคืนนั้น?']){const answer=await answerDialogue({person,question,language:'en',evidence:[]},{invoke:()=>{called++;return {text:'{}'};}});assert.equal(answer.mode,'authored');assert.doesNotMatch(answer.reply,/312|killed ten|Mira died/);}assert.equal(called,0);});
+test('final case facts require a corroborated chamber; generated replies cannot leak deaths early',()=>{const initial=dialogueContext({person:'doctor',language:'en',evidence:[]});assert.equal(checkReply('I killed Mira with gas.',initial),false);assert.equal(checkReply('The code is 312.',initial),false);const forged=dialogueContext({person:'doctor',language:'en',evidence:['order']});assert.ok(!forged.state.evidence.includes('order'));const final=dialogueContext({person:'doctor',language:'en',evidence:Object.keys(clues)});assert.ok(final.facts.some(f=>/killed ten guests and Mira/.test(f)));assert.equal(checkReply('Mira is alive and will return.',final),false);});

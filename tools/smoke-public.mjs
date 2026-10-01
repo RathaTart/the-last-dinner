@@ -23,7 +23,9 @@ await get('/.env',403);
 async function dialogue(data,expected,headers={}){const body=JSON.stringify(data);const r=await fetch(config.URL+'/api/dialogue',{method:'POST',headers:{'Content-Type':'application/json','x-amz-content-sha256':createHash('sha256').update(body).digest('hex'),...headers},body});checks.push({name:'dialogue '+(data.person||'invalid'),status:r.status,expected,pass:r.status===expected});return r;}
 await dialogue({person:'unknown',question:'hello'},400);
 await dialogue({person:'father',question:'Hello' },403,{'origin':'https://example.org','sec-fetch-site':'cross-site'});
-const pivotal=await (await dialogue({person:'sister',question:'Who stole the money?',language:'en',evidence:[]},200)).json();
+checks.push({name:'three-floor dark-case markup',pass:html.includes('id="floor-label"')&&html.includes('0 / 14')&&html.includes('3 floors, 10 rooms')});
+for(const person of ['doctor','caretaker','witness']){const reply=await (await dialogue({person,question:'What happened that night?',language:'en',evidence:[]},200)).json();checks.push({name:'new resident '+person,pass:reply.mode==='authored'&&typeof reply.reply==='string'&&reply.reply.length>20});}
+const pivotal=await (await dialogue({person:'sister',question:'Who ordered the killings?',language:'en',evidence:[]},200)).json();
 checks.push({name:'critical question stays authored',pass:pivotal.mode==='authored'});
 const aiResponse=await dialogue({person:'cook',question:'คุณรู้สึกอย่างไรกับบ้านหลังนี้?',language:'th',evidence:[]},200);
 const cookie=aiResponse.headers.get('set-cookie')||'',answer=await aiResponse.json();

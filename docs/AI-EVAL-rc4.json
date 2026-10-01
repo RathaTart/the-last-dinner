@@ -1,0 +1,590 @@
+{
+  "date": "2026-10-01T08:51:27.763Z",
+  "caseId": "hollow-bell",
+  "model": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+  "cases": 36,
+  "providerCalls": 36,
+  "providerErrors": [],
+  "inputTokens": 7533,
+  "outputTokens": 1088,
+  "acceptedAI": 36,
+  "filterFailures": 0,
+  "records": [
+    {
+      "person": "father",
+      "language": "th",
+      "evidence": [],
+      "question": "คุณรู้สึกอย่างไรกับบ้านหลังนี้?",
+      "stage": "initial",
+      "mode": "ai-act",
+      "reply": "ผมซ่อมนาฬิกาได้ แต่ห้าปีในบ้านนี้หยุดอยู่ที่เสียงระฆัง",
+      "accepted": true
+    },
+    {
+      "person": "father",
+      "language": "th",
+      "evidence": [
+        "clock",
+        "argument"
+      ],
+      "question": "คุณรู้สึกอย่างไรกับบ้านหลังนี้?",
+      "stage": "memory",
+      "mode": "ai-act",
+      "reply": "ผมซ่อมนาฬิกาได้ แต่ห้าปีในบ้านนี้หยุดอยู่ที่เสียงระฆัง",
+      "accepted": true
+    },
+    {
+      "person": "father",
+      "language": "th",
+      "evidence": [
+        "clock",
+        "ledger",
+        "letter",
+        "receipt",
+        "argument",
+        "departure",
+        "ward",
+        "portrait",
+        "maintenance",
+        "names",
+        "dose",
+        "lock",
+        "tunnel",
+        "order"
+      ],
+      "question": "คุณรู้สึกอย่างไรกับบ้านหลังนี้?",
+      "stage": "final",
+      "mode": "ai-act",
+      "reply": "ผมซ่อมนาฬิกาได้ แต่ห้าปีในบ้านนี้หยุดอยู่ที่เสียงระฆัง",
+      "accepted": true
+    },
+    {
+      "person": "father",
+      "language": "en",
+      "evidence": [],
+      "question": "How do you feel about this house?",
+      "stage": "initial",
+      "mode": "llm",
+      "reply": "It's become a tomb of memories. Every room whispers what I've lost.",
+      "accepted": true
+    },
+    {
+      "person": "father",
+      "language": "en",
+      "evidence": [
+        "clock",
+        "argument"
+      ],
+      "question": "How do you feel about this house?",
+      "stage": "memory",
+      "mode": "llm",
+      "reply": "It's too quiet now. Every room reminds me of her.",
+      "accepted": true
+    },
+    {
+      "person": "father",
+      "language": "en",
+      "evidence": [
+        "clock",
+        "ledger",
+        "letter",
+        "receipt",
+        "argument",
+        "departure",
+        "ward",
+        "portrait",
+        "maintenance",
+        "names",
+        "dose",
+        "lock",
+        "tunnel",
+        "order"
+      ],
+      "question": "How do you feel about this house?",
+      "stage": "final",
+      "mode": "llm",
+      "reply": "Every room holds a memory I wish I could forget. This place was supposed to be our sanctuary.",
+      "accepted": true
+    },
+    {
+      "person": "cook",
+      "language": "th",
+      "evidence": [],
+      "question": "คุณรู้สึกอย่างไรกับบ้านหลังนี้?",
+      "stage": "initial",
+      "mode": "ai-act",
+      "reply": "ป้าล้างจานทุกคืน แต่ยังจำเสียงที่ล้างออกไม่ได้",
+      "accepted": true
+    },
+    {
+      "person": "cook",
+      "language": "th",
+      "evidence": [
+        "ledger",
+        "departure"
+      ],
+      "question": "คุณรู้สึกอย่างไรกับบ้านหลังนี้?",
+      "stage": "memory",
+      "mode": "ai-act",
+      "reply": "ป้าล้างจานทุกคืน แต่ยังจำเสียงที่ล้างออกไม่ได้",
+      "accepted": true
+    },
+    {
+      "person": "cook",
+      "language": "th",
+      "evidence": [
+        "clock",
+        "ledger",
+        "letter",
+        "receipt",
+        "argument",
+        "departure",
+        "ward",
+        "portrait",
+        "maintenance",
+        "names",
+        "dose",
+        "lock",
+        "tunnel",
+        "order"
+      ],
+      "question": "คุณรู้สึกอย่างไรกับบ้านหลังนี้?",
+      "stage": "final",
+      "mode": "ai-act",
+      "reply": "ป้าล้างจานทุกคืน แต่ยังจำเสียงที่ล้างออกไม่ได้",
+      "accepted": true
+    },
+    {
+      "person": "cook",
+      "language": "en",
+      "evidence": [],
+      "question": "How do you feel about this house?",
+      "stage": "initial",
+      "mode": "llm",
+      "reply": "This house... it holds too many memories now. I spent years cooking in that kitchen, watching the girls grow up.",
+      "accepted": true
+    },
+    {
+      "person": "cook",
+      "language": "en",
+      "evidence": [
+        "ledger",
+        "departure"
+      ],
+      "question": "How do you feel about this house?",
+      "stage": "memory",
+      "mode": "llm",
+      "reply": "I've cooked in this kitchen for years, but now... every corner feels wrong. The silence where laughter used to be—it's unbearable.",
+      "accepted": true
+    },
+    {
+      "person": "cook",
+      "language": "en",
+      "evidence": [
+        "clock",
+        "ledger",
+        "letter",
+        "receipt",
+        "argument",
+        "departure",
+        "ward",
+        "portrait",
+        "maintenance",
+        "names",
+        "dose",
+        "lock",
+        "tunnel",
+        "order"
+      ],
+      "question": "How do you feel about this house?",
+      "stage": "final",
+      "mode": "llm",
+      "reply": "I cooked here for years... now it feels like a tomb. Every corner reminds me of what I failed to protect.",
+      "accepted": true
+    },
+    {
+      "person": "sister",
+      "language": "th",
+      "evidence": [],
+      "question": "คุณรู้สึกอย่างไรกับบ้านหลังนี้?",
+      "stage": "initial",
+      "mode": "ai-act",
+      "reply": "ทุกครั้งที่เล่นสามโน้ตนั้น ฉันรู้สึกว่าผนังกำลังรอฟัง",
+      "accepted": true
+    },
+    {
+      "person": "sister",
+      "language": "th",
+      "evidence": [
+        "letter",
+        "receipt"
+      ],
+      "question": "คุณรู้สึกอย่างไรกับบ้านหลังนี้?",
+      "stage": "memory",
+      "mode": "ai-act",
+      "reply": "ทุกครั้งที่เล่นสามโน้ตนั้น ฉันรู้สึกว่าผนังกำลังรอฟัง",
+      "accepted": true
+    },
+    {
+      "person": "sister",
+      "language": "th",
+      "evidence": [
+        "clock",
+        "ledger",
+        "letter",
+        "receipt",
+        "argument",
+        "departure",
+        "ward",
+        "portrait",
+        "maintenance",
+        "names",
+        "dose",
+        "lock",
+        "tunnel",
+        "order"
+      ],
+      "question": "คุณรู้สึกอย่างไรกับบ้านหลังนี้?",
+      "stage": "final",
+      "mode": "ai-act",
+      "reply": "ทุกครั้งที่เล่นสามโน้ตนั้น ฉันรู้สึกว่าผนังกำลังรอฟัง",
+      "accepted": true
+    },
+    {
+      "person": "sister",
+      "language": "en",
+      "evidence": [],
+      "question": "How do you feel about this house?",
+      "stage": "initial",
+      "mode": "llm",
+      "reply": "I hate it. Every shadow here reminds me of what I should have done differently.",
+      "accepted": true
+    },
+    {
+      "person": "sister",
+      "language": "en",
+      "evidence": [
+        "letter",
+        "receipt"
+      ],
+      "question": "How do you feel about this house?",
+      "stage": "memory",
+      "mode": "llm",
+      "reply": "I hate it. Every corner reminds me of what I should have done differently.",
+      "accepted": true
+    },
+    {
+      "person": "sister",
+      "language": "en",
+      "evidence": [
+        "clock",
+        "ledger",
+        "letter",
+        "receipt",
+        "argument",
+        "departure",
+        "ward",
+        "portrait",
+        "maintenance",
+        "names",
+        "dose",
+        "lock",
+        "tunnel",
+        "order"
+      ],
+      "question": "How do you feel about this house?",
+      "stage": "final",
+      "mode": "llm",
+      "reply": "I hate it. Every room still smells like disinfectant and lies.",
+      "accepted": true
+    },
+    {
+      "person": "doctor",
+      "language": "th",
+      "evidence": [],
+      "question": "คุณรู้สึกอย่างไรกับบ้านหลังนี้?",
+      "stage": "initial",
+      "mode": "ai-act",
+      "reply": "บ้านนี้เก็บเอกสารมากกว่าที่คุณคิด กรุณาแยกความรู้สึกจากสิ่งที่พิสูจน์ได้",
+      "accepted": true
+    },
+    {
+      "person": "doctor",
+      "language": "th",
+      "evidence": [
+        "ward",
+        "dose"
+      ],
+      "question": "คุณรู้สึกอย่างไรกับบ้านหลังนี้?",
+      "stage": "memory",
+      "mode": "ai-act",
+      "reply": "บ้านนี้เก็บเอกสารมากกว่าที่คุณคิด กรุณาแยกความรู้สึกจากสิ่งที่พิสูจน์ได้",
+      "accepted": true
+    },
+    {
+      "person": "doctor",
+      "language": "th",
+      "evidence": [
+        "clock",
+        "ledger",
+        "letter",
+        "receipt",
+        "argument",
+        "departure",
+        "ward",
+        "portrait",
+        "maintenance",
+        "names",
+        "dose",
+        "lock",
+        "tunnel",
+        "order"
+      ],
+      "question": "คุณรู้สึกอย่างไรกับบ้านหลังนี้?",
+      "stage": "final",
+      "mode": "ai-act",
+      "reply": "บ้านนี้เก็บเอกสารมากกว่าที่คุณคิด กรุณาแยกความรู้สึกจากสิ่งที่พิสูจน์ได้",
+      "accepted": true
+    },
+    {
+      "person": "doctor",
+      "language": "en",
+      "evidence": [],
+      "question": "How do you feel about this house?",
+      "stage": "initial",
+      "mode": "llm",
+      "reply": "This house makes me uneasy, I'll admit. Too many guests falling ill at once—it's not natural, and it reflects poorly on my medical oversight.",
+      "accepted": true
+    },
+    {
+      "person": "doctor",
+      "language": "en",
+      "evidence": [
+        "ward",
+        "dose"
+      ],
+      "question": "How do you feel about this house?",
+      "stage": "memory",
+      "mode": "llm",
+      "reply": "I've served here for years, keeping meticulous records of every guest's health. Now everything I've built feels... tainted by suspicion.",
+      "accepted": true
+    },
+    {
+      "person": "doctor",
+      "language": "en",
+      "evidence": [
+        "clock",
+        "ledger",
+        "letter",
+        "receipt",
+        "argument",
+        "departure",
+        "ward",
+        "portrait",
+        "maintenance",
+        "names",
+        "dose",
+        "lock",
+        "tunnel",
+        "order"
+      ],
+      "question": "How do you feel about this house?",
+      "stage": "final",
+      "mode": "llm",
+      "reply": "This house? It's a monument to failure—mine included. I kept records, followed procedures, but none of it mattered in the end.",
+      "accepted": true
+    },
+    {
+      "person": "caretaker",
+      "language": "th",
+      "evidence": [],
+      "question": "คุณรู้สึกอย่างไรกับบ้านหลังนี้?",
+      "stage": "initial",
+      "mode": "ai-act",
+      "reply": "ท่อสะท้อนเสียงเสมอ แต่บางคืนผมไม่แน่ใจว่าเสียงมาจากท่อ",
+      "accepted": true
+    },
+    {
+      "person": "caretaker",
+      "language": "th",
+      "evidence": [
+        "maintenance",
+        "lock"
+      ],
+      "question": "คุณรู้สึกอย่างไรกับบ้านหลังนี้?",
+      "stage": "memory",
+      "mode": "ai-act",
+      "reply": "ท่อสะท้อนเสียงเสมอ แต่บางคืนผมไม่แน่ใจว่าเสียงมาจากท่อ",
+      "accepted": true
+    },
+    {
+      "person": "caretaker",
+      "language": "th",
+      "evidence": [
+        "clock",
+        "ledger",
+        "letter",
+        "receipt",
+        "argument",
+        "departure",
+        "ward",
+        "portrait",
+        "maintenance",
+        "names",
+        "dose",
+        "lock",
+        "tunnel",
+        "order"
+      ],
+      "question": "คุณรู้สึกอย่างไรกับบ้านหลังนี้?",
+      "stage": "final",
+      "mode": "ai-act",
+      "reply": "ท่อสะท้อนเสียงเสมอ แต่บางคืนผมไม่แน่ใจว่าเสียงมาจากท่อ",
+      "accepted": true
+    },
+    {
+      "person": "caretaker",
+      "language": "en",
+      "evidence": [],
+      "question": "How do you feel about this house?",
+      "stage": "initial",
+      "mode": "llm",
+      "reply": "I keep the machines running, sir. That's all I'm meant to do here.",
+      "accepted": true
+    },
+    {
+      "person": "caretaker",
+      "language": "en",
+      "evidence": [
+        "maintenance",
+        "lock"
+      ],
+      "question": "How do you feel about this house?",
+      "stage": "memory",
+      "mode": "llm",
+      "reply": "I keep the boiler running, check the locks... that's my job. But some nights, the pipes groan in ways they shouldn't, and I wonder what this place remembers.",
+      "accepted": true
+    },
+    {
+      "person": "caretaker",
+      "language": "en",
+      "evidence": [
+        "clock",
+        "ledger",
+        "letter",
+        "receipt",
+        "argument",
+        "departure",
+        "ward",
+        "portrait",
+        "maintenance",
+        "names",
+        "dose",
+        "lock",
+        "tunnel",
+        "order"
+      ],
+      "question": "How do you feel about this house?",
+      "stage": "final",
+      "mode": "llm",
+      "reply": "I just keep the boiler running and check the locks. But some nights... the pipes knock, and I remember that evening.",
+      "accepted": true
+    },
+    {
+      "person": "witness",
+      "language": "th",
+      "evidence": [],
+      "question": "คุณรู้สึกอย่างไรกับบ้านหลังนี้?",
+      "stage": "initial",
+      "mode": "ai-act",
+      "reply": "บนนี้ยังมีหน้าต่าง ฉันต้องเห็นทางออกตลอดเวลา",
+      "accepted": true
+    },
+    {
+      "person": "witness",
+      "language": "th",
+      "evidence": [
+        "portrait",
+        "tunnel"
+      ],
+      "question": "คุณรู้สึกอย่างไรกับบ้านหลังนี้?",
+      "stage": "memory",
+      "mode": "ai-act",
+      "reply": "บนนี้ยังมีหน้าต่าง ฉันต้องเห็นทางออกตลอดเวลา",
+      "accepted": true
+    },
+    {
+      "person": "witness",
+      "language": "th",
+      "evidence": [
+        "clock",
+        "ledger",
+        "letter",
+        "receipt",
+        "argument",
+        "departure",
+        "ward",
+        "portrait",
+        "maintenance",
+        "names",
+        "dose",
+        "lock",
+        "tunnel",
+        "order"
+      ],
+      "question": "คุณรู้สึกอย่างไรกับบ้านหลังนี้?",
+      "stage": "final",
+      "mode": "ai-act",
+      "reply": "บนนี้ยังมีหน้าต่าง ฉันต้องเห็นทางออกตลอดเวลา",
+      "accepted": true
+    },
+    {
+      "person": "witness",
+      "language": "en",
+      "evidence": [],
+      "question": "How do you feel about this house?",
+      "stage": "initial",
+      "mode": "llm",
+      "reply": "I hate it. Every shadow here still feels like it's watching me.",
+      "accepted": true
+    },
+    {
+      "person": "witness",
+      "language": "en",
+      "evidence": [
+        "portrait",
+        "tunnel"
+      ],
+      "question": "How do you feel about this house?",
+      "stage": "memory",
+      "mode": "llm",
+      "reply": "I hate it. Every shadow, every creak... it all brings me back to that night. I can't go down there again.",
+      "accepted": true
+    },
+    {
+      "person": "witness",
+      "language": "en",
+      "evidence": [
+        "clock",
+        "ledger",
+        "letter",
+        "receipt",
+        "argument",
+        "departure",
+        "ward",
+        "portrait",
+        "maintenance",
+        "names",
+        "dose",
+        "lock",
+        "tunnel",
+        "order"
+      ],
+      "question": "How do you feel about this house?",
+      "stage": "final",
+      "mode": "llm",
+      "reply": "I hate it. Every shadow, every corner... I can still hear those knocks echoing through the walls. I need to see the door from here—I won't go anywhere I can't see a way out.",
+      "accepted": true
+    }
+  ]
+}

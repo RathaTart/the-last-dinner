@@ -10,7 +10,9 @@ All runtime assets are self-hosted. No AI-generated raster images are used in th
 | DM Sans | [Google Fonts](https://github.com/google/fonts/tree/main/ofl/dmsans) | SIL OFL 1.1 | Variable TrueType font |
 | Playfair Display | [Google Fonts](https://github.com/google/fonts/tree/main/ofl/playfairdisplay) | SIL OFL 1.1 | Variable TrueType font |
 | Three.js 0.180.0 | [Three.js](https://github.com/mrdoob/three.js) | MIT | Bundled renderer and GLTFLoader |
-| House, clinic, memories, story and UI | Created in this project | Project-owned source | Procedural geometry and text |
+| House, added floors, memories, story and UI | Created in this project | Project-owned source | Procedural geometry and text |
 | Music motif, clock/evidence chimes | Created in this project | Project-owned source | Synthesized with WebAudio; no downloaded recordings |
 
 Original third-party license texts are included under `assets/licenses/` and served with the game. Attribution to Kenney is included even though CC0 does not require it. Fonts are distributed unmodified with their original licenses. The commercial reference *The Sexy Brutale* informs the cutaway theatrical atmosphere; none of its assets are used.
+
+rc.4 adds original procedural second-floor and basement scenery in `house-expansion.js`. Three additional residents reuse existing character bases with tint variations. No new paid assets or AI-generated images were acquired.

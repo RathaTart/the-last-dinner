@@ -1,11 +1,11 @@
 {
-  "date": "2026-10-01T09:09:46.427Z",
+  "date": "2026-10-01T07:59:03.467Z",
   "url": "https://d3imrhbpvqr1t2.cloudfront.net",
-  "release": "rc4-2026-10-01T09-08-43-673Z",
+  "release": "rc3-2026-10-01T07-58-04-720Z",
   "status": {
     "dialogue": "llm",
     "provider": "Amazon Bedrock",
-    "version": "1.0.0-rc.4"
+    "version": "1.0.0-rc.3"
   },
   "checks": [
     {
@@ -19,7 +19,7 @@
       "pass": true
     },
     {
-      "path": "/app.js?v=6c0f84c6077bd2e0",
+      "path": "/app.js?v=4d689b3322b0656d",
       "status": 200,
       "expected": 200,
       "pass": true
@@ -60,8 +60,8 @@
     },
     {
       "name": "deployed API release version",
-      "expected": "1.0.0-rc.4",
-      "actual": "1.0.0-rc.4",
+      "expected": "1.0.0-rc.3",
+      "actual": "1.0.0-rc.3",
       "pass": true
     },
     {
@@ -84,40 +84,6 @@
       "name": "dialogue father",
       "status": 403,
       "expected": 403,
-      "pass": true
-    },
-    {
-      "name": "three-floor dark-case markup",
-      "pass": true
-    },
-    {
-      "name": "dialogue doctor",
-      "status": 200,
-      "expected": 200,
-      "pass": true
-    },
-    {
-      "name": "new resident doctor",
-      "pass": true
-    },
-    {
-      "name": "dialogue caretaker",
-      "status": 200,
-      "expected": 200,
-      "pass": true
-    },
-    {
-      "name": "new resident caretaker",
-      "pass": true
-    },
-    {
-      "name": "dialogue witness",
-      "status": 200,
-      "expected": 200,
-      "pass": true
-    },
-    {
-      "name": "new resident witness",
       "pass": true
     },
     {

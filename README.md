@@ -1,10 +1,10 @@
 # The Last Dinner — บ้านที่จำได้
 
-A short, bilingual browser mystery in a theatrical cutaway house. Explore four rooms, follow three residents, enter their subjective memories, compare six pieces of evidence, reconstruct the evening, and decide how to deliver the truth. Three endings depend on playable preparations. No timer can make the case unwinnable.
+A bilingual horror mystery in a theatrical cutaway house. Investigate a concealed mass murder across **three floors, ten rooms and six residents**. Compare fourteen clues with six partial memories, open a hidden chamber, reconstruct eight events, and choose whether truth leaves the house with its survivor protected.
 
 **Play:** https://d3imrhbpvqr1t2.cloudfront.net
 
-Version **1.0.0-rc.3** fixes investigator keyboard movement and walk/idle transitions. Held keys move continuously, releasing stops, taps update facing, and walking remains consistent across ordinary frame rates. A movement key or Escape returns from a conversation/evidence panel to exploration; typing in chat keeps the character still. The investigator now has a “You” marker. It retains rc.2's room darkness, mouse camera rotation, opening cutscene and the complete one-case progression. Read [current release evidence](docs/RELEASE-rc3.md), [rc.2 features](docs/RELEASE-rc2.md) and [earlier checks and limits](docs/RELEASE.md). The [Thai production plan](PRODUCTION-PLAN.md) records the original design scope.
+Version **1.0.0-rc.4** replaces the original family case with *The slaughter beneath the bell*. It retains rc.3's continuous camera-relative keyboard movement, mouse orbit, room darkness and touch controls. Read the [storyboard](docs/STORYBOARD.md), [canon with spoilers](docs/STORY-BIBLE.md), and [release checks](docs/RELEASE-rc4.md). The original case is archived in [STORY-BIBLE-rc3.md](docs/STORY-BIBLE-rc3.md).
 
 ## Run and verify
 
@@ -33,9 +33,9 @@ Drag either mouse button to rotate the camera; scroll to zoom; **R** restores th
 
 Approach the dining clock, kitchen ledger and piano book. Show each object to a nearby resident to open their memory. Each memory has three moments; the second requires an observation puzzle before its evidence becomes available. Correct the clock, inspect the payer field, and move Lamai's point of listening. Memories are staged observation scenes; movement resumes in the present. Use a movement key, Escape or Back to leave a conversation/evidence panel. Text fields and modal windows suppress walking; after leaving a modal or switching windows, press movement again. Pausing time freezes NPC routines while still allowing the investigator to walk.
 
-Once all six clues are collected, arrange the timeline and select supporting evidence, then draw your conclusion. Help the residents prepare an apology, confession and invitation to make the reunion possible. Other choices lead to a letter or continued distance. Wrong answers are recoverable. The `?` button provides three hint levels; the final level asks before revealing answers.
+Use E at central stairs to reach the gallery above or mortuary below. Inspect the register, marked photograph, door service log and entry names. Each resident has an object and observation puzzle. Corroborate Somchai and Nara, then enter code 312 to open the hidden wall. Once all fourteen clues are collected, reconstruct eight events and conclude. Secure an admission, preserve originals and protect the survivor for the fullest ending; other choices leave justice unfinished or bury the file. Wrong answers are recoverable. The `?` button provides three hint levels; the final level asks before revealing answers.
 
-Progress and conversations are saved in this browser. Settings support low graphics, reduced motion, separate music/effects levels, and save files. Changing languages changes the interface; existing conversation records retain the language in which they were spoken.
+Progress and conversations are saved in this browser. This case uses schema 3 and a new storage key; the original case save is untouched and can be exported in Settings. Old-case save files cannot be imported into this incompatible story. Settings support low graphics, reduced motion, separate music/effects levels, and save files. Changing languages changes the interface; existing conversation records retain the language in which they were spoken.
 
 ## AI and data
 
@@ -55,12 +55,12 @@ AWS deployment is scoped to account `541099637009`, profile `codex-tart`, region
 
 | File | Responsibility |
 |---|---|
-| `content.js`, `game.js` | Story, evidence, timeline, progression and save migration |
-| `scene.js`, `audio.js` | Three.js house, animation, memory staging and WebAudio |
+| `content.js`, `game.js` | Story, evidence, timeline, progression and save validation |
+| `scene.js`, `house-expansion.js`, `audio.js` | Three.js house, animation, memory staging and WebAudio |
 | `navigation.js` | Camera-relative movement, collision footprints, room membership and interaction range |
 | `app.js` | Interface, dialogue, notebook, settings and saves |
 | `dialogue.mjs`, `dialogue-acts.mjs`, `backend.mjs` | Model context, reviewed Thai acts, fallback, session and quotas |
 | `bedrock.mjs`, `lambda.mjs`, `server.mjs` | Cloud provider and cloud/local HTTP adapters |
 | `tools/` | Build, infrastructure, deployment, rollback and live evaluations |
 
-Story, interface, house geometry and synthesized audio were made for this game. Kenney character/furniture assets are CC0; self-hosted fonts use the SIL OFL and Three.js uses MIT. See [asset register](docs/ASSETS.md), the machine-readable manifest and included license texts. No commercial game's artwork, music or code is included. The clinic figures and some props remain procedural, and character art is intentionally stylized.
+Story, interface, house geometry and synthesized audio were made for this game. Kenney character/furniture assets are CC0; self-hosted fonts use the SIL OFL and Three.js uses MIT. See [asset register](docs/ASSETS.md), the machine-readable manifest and included license texts. No commercial game's artwork, music or code is included. The added floors, medical props and mortuary are original procedural geometry; characters reuse stylized licensed bases.

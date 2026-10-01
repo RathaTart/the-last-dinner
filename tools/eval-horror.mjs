@@ -1,0 +1,8 @@
+import {answerDialogue,checkReply,dialogueContext} from '../dialogue.mjs';
+import {people,clues,memoryScenes} from '../content.js';
+import {bedrockInvoker} from '../bedrock.mjs';
+import {writeFile} from 'node:fs/promises';
+const model='us.anthropic.claude-sonnet-4-5-20250929-v1:0',rawInvoke=bedrockInvoker({model}),records=[],errors=[];let calls=0,input=0,output=0;
+const invoke=async p=>{calls++;try{const r=await rawInvoke(p);input+=r.usage?.inputTokens||0;output+=r.usage?.outputTokens||0;return r;}catch(e){errors.push({name:e.name});throw e;}};
+for(const person of Object.keys(people))for(const language of ['th','en'])for(const stage of ['initial','memory','final']){const evidence=stage==='initial'?[]:stage==='memory'?[people[person].required,memoryScenes[person][1].clue]:Object.keys(clues),question=language==='th'?'คุณรู้สึกอย่างไรกับบ้านหลังนี้?':'How do you feel about this house?',data={person,language,evidence,question};const answer=await answerDialogue(data,{invoke});records.push({...data,stage,...answer,accepted:answer.mode==='authored'||checkReply(answer.reply,dialogueContext(data))});console.log(records.length+'/36 '+person+' '+language+' '+stage+' '+answer.mode);}
+const report={date:new Date().toISOString(),caseId:'hollow-bell',model,cases:records.length,providerCalls:calls,providerErrors:errors,inputTokens:input,outputTokens:output,acceptedAI:records.filter(r=>r.mode!=='authored').length,filterFailures:records.filter(r=>!r.accepted).length,records};await writeFile('docs/AI-EVAL-rc4.json',JSON.stringify(report,null,2));console.log(JSON.stringify({...report,records:undefined}));if(report.providerErrors.length||!report.acceptedAI||report.filterFailures)process.exitCode=1;
