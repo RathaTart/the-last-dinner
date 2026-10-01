@@ -1,6 +1,6 @@
 import {CASE_ID,floors,rooms,people,clues,EVIDENCE_TOTAL,memoryScenes,memoryPuzzles,timelineEvents,preparations,endings,hints} from './content.js';
 export {CASE_ID,floors,rooms,people,clues,EVIDENCE_TOTAL,memoryScenes,memoryPuzzles,timelineEvents,preparations,endings,hints};
-export const VERSION='1.0.0-rc.9';
+export const VERSION='1.0.0-rc.10';
 export function simulationDelta(now,last){return Number.isFinite(now)&&Number.isFinite(last)?Math.max(0,Math.min((now-last)/1000,.04)):0;}
 const mapPeople=value=>Object.fromEntries(Object.keys(people).map(id=>[id,typeof value==='function'?value():value]));
 export function freshState(){return {version:3,caseId:CASE_ID,started:false,introSeen:false,room:'foyer',secretOpen:false,evidence:[],trust:mapPeople(0),observations:mapPeople(false),reconstructed:false,resolved:false,preparations:[],ending:null,conversations:mapPeople(()=>[]),hintLevel:0};}

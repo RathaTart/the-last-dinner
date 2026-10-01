@@ -1,25 +1,30 @@
 {
-  "generated": "2026-10-01T09:53:58.453Z",
+  "generated": "2026-10-01T12:58:47.669Z",
   "files": [
     {
-      "file": "assets/characters/character-a.glb",
-      "bytes": 113596,
-      "sha256": "8ee5dae167ec589863f6bba222467eb90ace8be357a4c5abfcab289290181616"
+      "file": "assets/audio/wood-000.ogg",
+      "bytes": 5949,
+      "sha256": "5f1c252942a220d658121bd9417448cd19649ded9fff2ff15f6e50899373ce8e"
     },
     {
-      "file": "assets/characters/character-b.glb",
-      "bytes": 113596,
-      "sha256": "30ed390a741a1b285f587544819aa8a02c8f7f270e552ed742eb84785034f62a"
+      "file": "assets/audio/wood-001.ogg",
+      "bytes": 5929,
+      "sha256": "e4f68e1c9fd55b4dc8ca89ed2bbab6f200171bc54bdc18aa96b80d8e7336f462"
     },
     {
-      "file": "assets/characters/character-e.glb",
-      "bytes": 113596,
-      "sha256": "9a12684981bc7763aebeceaffed82abfcc458d27b1ed3e169b92bebcc4870675"
+      "file": "assets/audio/wood-002.ogg",
+      "bytes": 5895,
+      "sha256": "9ff095b05cee5eec40b081defe3f0eef7232bb16d4865ce03b9f6dbab875cfdd"
     },
     {
-      "file": "assets/characters/character-i.glb",
-      "bytes": 113532,
-      "sha256": "2b566d3b6261faa3e151b352396d823a285834f039ff6476db248ec6da902fe8"
+      "file": "assets/audio/wood-003.ogg",
+      "bytes": 6207,
+      "sha256": "2a68a083daa9eda08fed0ea5da5280dfbe0de226196c576be02f95259dd139d9"
+    },
+    {
+      "file": "assets/audio/wood-004.ogg",
+      "bytes": 5799,
+      "sha256": "b33e0854e2b3f6b6492e25c25ef8f90447a332f7c6bb25dd02edced9581d3441"
     },
     {
       "file": "assets/characters/Textures/texture-a.png",
@@ -40,6 +45,26 @@
       "file": "assets/characters/Textures/texture-i.png",
       "bytes": 14496,
       "sha256": "2c721b0a8837836ab0bf0eb0de12ca14e5d518ccba7420b8c673ed4600dc6b63"
+    },
+    {
+      "file": "assets/characters/character-a.glb",
+      "bytes": 113596,
+      "sha256": "8ee5dae167ec589863f6bba222467eb90ace8be357a4c5abfcab289290181616"
+    },
+    {
+      "file": "assets/characters/character-b.glb",
+      "bytes": 113596,
+      "sha256": "30ed390a741a1b285f587544819aa8a02c8f7f270e552ed742eb84785034f62a"
+    },
+    {
+      "file": "assets/characters/character-e.glb",
+      "bytes": 113596,
+      "sha256": "9a12684981bc7763aebeceaffed82abfcc458d27b1ed3e169b92bebcc4870675"
+    },
+    {
+      "file": "assets/characters/character-i.glb",
+      "bytes": 113532,
+      "sha256": "2b566d3b6261faa3e151b352396d823a285834f039ff6476db248ec6da902fe8"
     },
     {
       "file": "assets/fonts/dm-sans.ttf",
@@ -100,6 +125,11 @@
       "file": "assets/licenses/kenney-furniture.txt",
       "bytes": 614,
       "sha256": "bc0de1a0742cb490f9ed4bae0bd284286ebb27e23149b9917c7d8c0d590b8b29"
+    },
+    {
+      "file": "assets/licenses/kenney-impact-sounds.txt",
+      "bytes": 608,
+      "sha256": "b49aa9c56b04528b95913de13e506a0f7c5e807b9925db9bfef86af1f91120db"
     },
     {
       "file": "assets/licenses/notosansthai-OFL.txt",

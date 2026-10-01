@@ -1,14 +1,20 @@
-// Original Web Audio score and house sounds. No recordings, remote assets or tracking.
+import {stepInterval} from './movement-profile.js';
+
+// Original Web Audio score and house sounds, plus self-hosted CC0 Kenney wood contacts.
 export function createAudio({
  contextFactory=()=>new (globalThis.AudioContext||globalThis.webkitAudioContext)(),
  isHidden=()=>!!globalThis.document?.hidden,
  scheduleInterval=(fn,ms)=>globalThis.setInterval(fn,ms),
  cancelInterval=id=>globalThis.clearInterval(id),
- random=Math.random
+ random=Math.random,
+ fetcher=(url,options)=>globalThis.fetch(url,options),
+ sampleLoader,
+ sampleTimeoutMs=5000
 }={}){
  const MAX_VOICES=24,FX_LOOKAHEAD=.03,MASTER_GAIN=.8,FX_SCALE=4.2,MUSIC_SCALE=2.4,melody=[196,246.94,293.66,246.94,174.61,220,261.63,220,164.81,196,246.94,196,146.83,196,220,0];
  let ctx,master,music,fx,limiter,analyser,effectsAnalyser,meterSamples,effectsSamples,noiseBuffer,timer=null,enabled=false,disposed=false,hiddenOverride=false;
  let generation=0,step=0,memory=false,ending=false,musicVolume=.45,effectsVolume=.65,played=0,lastEffect=null,effectPlans=null,maxScheduleLateMs=0;
+ let woodSampleState='unloaded',woodSampleSource=null,woodSampleVariant=-1,woodSamples=[],woodLoadPromise=null,woodAbort=null,woodLoadGeneration=0;
  const voices=new Set(),lastPlayed=new Map();
  const hidden=()=>hiddenOverride||isHidden(),canRun=()=>enabled&&!disposed&&!hidden();
  const clamp=(value,min,max,fallback)=>Number.isFinite(Number(value))?Math.max(min,Math.min(max,Number(value))):fallback;
@@ -19,6 +25,35 @@ export function createAudio({
  function stopVoices(bus){for(const voice of [...voices])if(!bus||voice.bus===bus)stopVoice(voice);}
  function stopTimer(){if(timer!==null){cancelInterval(timer);timer=null;}}
  function silence(){stopTimer();setGain(master,0);stopVoices();lastPlayed.clear();meterSamples?.fill(0);effectsSamples?.fill(0);}
+ const woodStatus=()=>({state:woodSampleState,count:woodSamples.length});
+ async function loadWoodBuffer(url,context,signal){
+  if(sampleLoader)return sampleLoader(url,context,{signal});
+  const response=await fetcher(url,{signal,cache:'force-cache'});
+  if(!response.ok)throw Error(`Wood sound request failed (${response.status})`);
+  return context.decodeAudioData(await response.arrayBuffer());
+ }
+ function beginWoodLoad(){
+  if(!ctx||disposed||woodLoadPromise)return woodLoadPromise||Promise.resolve(woodStatus());
+  const context=ctx,request=++woodLoadGeneration,controller=new AbortController();woodAbort=controller;woodSampleState='loading';
+  let timeout,rejectAbort;
+  const interrupted=new Promise((_,reject)=>{rejectAbort=()=>reject(Error('Wood sound load interrupted'));controller.signal.addEventListener('abort',rejectAbort,{once:true});});
+  timeout=globalThis.setTimeout(()=>controller.abort(),clamp(sampleTimeoutMs,1,10000,5000));
+  // Decode in the background; no context resume, playback, or startup wait occurs here.
+  const loading=Promise.all(Array.from({length:5},(_,index)=>loadWoodBuffer(`/assets/audio/wood-${String(index).padStart(3,'0')}.ogg`,context,controller.signal))).then(buffers=>buffers.map(buffer=>{
+   if(!buffer||!Number.isFinite(buffer.duration)||buffer.duration<=0||!buffer.numberOfChannels)throw Error('Invalid wood sound buffer');
+   let peak=0;for(let channel=0;channel<buffer.numberOfChannels;channel++)for(const value of buffer.getChannelData(channel))peak=Math.max(peak,Math.abs(value));
+   if(!peak||!Number.isFinite(peak))throw Error('Empty wood sound buffer');
+   return {buffer,peak};
+  }));
+  woodLoadPromise=Promise.race([loading,interrupted]).then(samples=>{
+   if(!disposed&&request===woodLoadGeneration&&ctx===context){woodSamples=samples;woodSampleState='ready';}
+   return woodStatus();
+  }).catch(()=>{
+   if(!disposed&&request===woodLoadGeneration){woodSamples=[];woodSampleState='failed';controller.abort();}
+   return woodStatus();
+  }).finally(()=>{globalThis.clearTimeout(timeout);controller.signal.removeEventListener('abort',rejectAbort);if(woodAbort===controller)woodAbort=null;});
+  return woodLoadPromise;
+ }
  function initialize(){
   ctx=contextFactory();master=ctx.createGain();music=ctx.createGain();fx=ctx.createGain();limiter=ctx.createDynamicsCompressor();analyser=ctx.createAnalyser();effectsAnalyser=ctx.createAnalyser();
   master.gain.value=0;music.gain.value=musicVolume;fx.gain.value=effectsVolume;
@@ -28,8 +63,9 @@ export function createAudio({
   music.connect(master);fx.connect(effectsAnalyser);effectsAnalyser.connect(master);master.connect(limiter);limiter.connect(analyser);analyser.connect(ctx.destination);
   noiseBuffer=ctx.createBuffer(1,Math.ceil(ctx.sampleRate*.8),ctx.sampleRate);
   const data=noiseBuffer.getChannelData(0);for(let i=0;i<data.length;i++)data[i]=(random()*2-1)*.68;
+  beginWoodLoad();
  }
- function register(source,nodes,bus,when,duration,volume,attack=.008,configure=()=>{}){
+ function register(source,nodes,bus,when,duration,volume,attack=.008,configure=()=>{},envelope='synth'){
   if(disposed||busLevel(bus)<=0){for(const node of nodes)node.disconnect();return false;}
   while(voices.size>=MAX_VOICES){const oldest=[...voices].find(v=>v.bus===music)||voices.values().next().value;stopVoice(oldest);}
   const gain=ctx.createGain();source.connect(nodes[1]||gain);if(nodes[1])nodes.at(-1).connect(gain);gain.connect(bus);
@@ -39,7 +75,10 @@ export function createAudio({
   const voice={source,nodes:[...nodes,gain],bus,cleaned:false};voices.add(voice);source.onended=()=>cleanup(voice);
   const schedule=start=>{
    if(voice.cleaned)return;configure(start);
-   gain.gain.setValueAtTime(.0001,start);gain.gain.exponentialRampToValueAtTime(peak,start+rise);gain.gain.setValueAtTime(peak,start+rise+hold);gain.gain.exponentialRampToValueAtTime(.0001,start+duration);
+   if(envelope==='sample'){
+    // The recording already contains its attack: preserve contact, then fade only its tail.
+    gain.gain.setValueAtTime(peak,start);gain.gain.setValueAtTime(peak,start+duration-Math.min(.025,duration*.15));gain.gain.linearRampToValueAtTime(0,start+duration);
+   }else{gain.gain.setValueAtTime(.0001,start);gain.gain.exponentialRampToValueAtTime(peak,start+rise);gain.gain.setValueAtTime(peak,start+rise+hold);gain.gain.exponentialRampToValueAtTime(.0001,start+duration);}
    source.start(start);source.stop(start+duration+.025);
   };
   if(bus===fx&&effectPlans)effectPlans.push({voice,when,schedule});else schedule(when);return true;
@@ -56,11 +95,22 @@ export function createAudio({
   filter.type=type;filter.frequency.value=frequency;filter.Q.value=q;
   return register(source,[source,filter],fx,when,Math.min(duration,.75),volume,.012);
  }
+ function sampledWood(at,mode){
+  if(!woodSamples.length)return false;
+  // Draw evenly from every variant except the previous contact.
+  let index=Math.floor(clamp(random(),0,.999999,.5)*(woodSamples.length-(woodSampleVariant>=0?1:0)));
+  if(woodSampleVariant>=0&&index>=woodSampleVariant)index++;
+  const {buffer,peak}=woodSamples[index],scale=mode==='crouch'?.34:mode==='run'?1.2:1;
+  const rate=(mode==='run'?1.1:mode==='crouch'?.96:1)*(.985+clamp(random(),0,1,.5)*.03),volume=.038*scale*(.96+clamp(random(),0,1,.5)*.08)/Math.max(.5,peak);
+  const source=ctx.createBufferSource();source.buffer=buffer;
+  const accepted=register(source,[source],fx,at,Math.min(1.5,buffer.duration/rate),volume,0,start=>source.playbackRate.setValueAtTime(rate,start),'sample');
+  if(accepted){woodSampleVariant=index;woodSampleSource='sample';}return accepted;
+ }
  function footstep(at,{surface='wood',mode='walk',stair=false}={}){
   const scale=mode==='crouch'?.34:mode==='run'?1.2:1,pitch=.97+random()*.06;
   if(surface==='rug'){tone(120*pitch,at,.09,.017*scale,'sine',fx,72);noise(at,.08,.013*scale,550);}
   else if(surface==='stone'){tone(140*pitch,at,.085,.026*scale,'sine',fx,78);noise(at,.055,.033*scale,1450);}
-  else{tone(185*pitch,at,.1,.034*scale,'triangle',fx,100);noise(at,.06,.024*scale,850,'bandpass',.8);if(stair)tone(255*pitch,at+.035,.16,.009*scale,'triangle',fx,180);}
+  else if(!sampledWood(at,mode)){woodSampleSource='synth';tone(185*pitch,at,.1,.034*scale,'triangle',fx,100);noise(at,.06,.024*scale,850,'bandpass',.8);if(stair)tone(255*pitch,at+.035,.16,.009*scale,'triangle',fx,180);}
  }
  function cue(name,at,options={}){
   switch(name){
@@ -89,6 +139,10 @@ export function createAudio({
     notes.forEach((f,i)=>tone(f,at+i*.18,1.5,.021-i*.003));break;
    }
    case 'testTone':tone(660,at,.16,.05);tone(880,at+.2,.19,.04);break;
+   case 'woodWalkPreview':case 'woodRunPreview':{
+    const mode=name==='woodRunPreview'?'run':'walk',count=mode==='run'?8:4;
+    for(let i=0;i<count;i++)footstep(at+i*stepInterval(mode),{surface:'wood',mode});break;
+   }
    case 'preview':
     cue('testTone',at);footstep(at+.46,{surface:'wood'});footstep(at+.73,{surface:'stone'});footstep(at+1,{surface:'rug',mode:'crouch'});
     cue('bagOpen',at+1.24);cue('memoryEnter',at+1.55);cue('success',at+2.5);break;
@@ -120,7 +174,12 @@ export function createAudio({
   if(active&&ctx.state==='running'){setGain(master,MASTER_GAIN);startMusic();return true;}
   silence();return false;
  }
- const cooldown={footstep:.08,door:.35,bagOpen:.12,bagClose:.12,inspect:.12,success:.12,error:.12,secretUnlock:.5,memoryEnter:.3,memoryExit:.2,memoryStep:.05,stance:.1,intro:.12,ending:.6,testTone:.4,preview:3.3};
+ const cooldown={footstep:.08,door:.35,bagOpen:.12,bagClose:.12,inspect:.12,success:.12,error:.12,secretUnlock:.5,memoryEnter:.3,memoryExit:.2,memoryStep:.05,stance:.1,intro:.12,ending:.6,testTone:.4,preview:3.3,woodWalkPreview:2.3,woodRunPreview:2.3};
+ const previewCues=new Set(['preview','woodWalkPreview','woodRunPreview']);
+ function stopPreview(){
+  let stopped=0;for(const voice of [...voices])if(previewCues.has(voice.cue)){stopVoice(voice);stopped++;}
+  for(const name of previewCues)lastPlayed.delete(name);return stopped;
+ }
  function play(name,options={}){
   if(!Object.hasOwn(cooldown,name)||!canRun()||ctx?.state!=='running'||effectsVolume<=0)return false;
   const now=ctx.currentTime;if(now-(lastPlayed.get(name)??-Infinity)<cooldown[name])return false;
@@ -131,7 +190,7 @@ export function createAudio({
   // cannot expire during slow node creation, and the tape/preview timing stays intact.
   const allocationDelay=Math.max(0,ctx.currentTime-now),shift=allocationDelay+FX_LOOKAHEAD;
   maxScheduleLateMs=Math.max(maxScheduleLateMs,allocationDelay*1000);
-  for(const plan of plans)plan.schedule(plan.when+shift);
+  for(const plan of plans){plan.voice.cue=name;plan.schedule(plan.when+shift);}
   lastPlayed.set(name,now);played++;lastEffect=name;return true;
  }
  function measure(meter,samples){
@@ -145,9 +204,9 @@ export function createAudio({
   async setHidden(value){if(disposed)return false;hiddenOverride=!!value;return reconcile(++generation);},
   setVolumes(m,s){musicVolume=clamp(m,0,1,musicVolume);effectsVolume=clamp(s,0,1,effectsVolume);setGain(music,musicVolume);setGain(fx,effectsVolume);if(musicVolume===0){stopTimer();stopVoices(music);}else if(canRun()&&ctx?.state==='running')startMusic();if(effectsVolume===0)stopVoices(fx);},
   setMemory(value){memory=!!value;},setEnding(value){ending=!!value;},
-  play,chime:()=>play('success'),
+  play,stopPreview,chime:()=>play('success'),whenWoodReady:()=>woodLoadPromise||Promise.resolve(woodStatus()),
   // Mixed output is post-limiter; FX is post-volume but pre-master. Neither verifies speakers.
-  getStatus(){const output=measure(analyser,meterSamples),effects=effectsVolume>0?measure(effectsAnalyser,effectsSamples):{rms:0,peak:0};return {enabled:enabled&&!disposed,state:disposed?'closed':ctx?.state??'uninitialized',played,lastEffect,activeVoices:voices.size,musicVolume,effectsVolume,...output,effectsRms:effects.rms,effectsPeak:effects.peak,maxScheduleLateMs:Number(maxScheduleLateMs.toFixed(3))};},
-  async dispose(){if(disposed)return;disposed=true;enabled=false;generation++;silence();for(const node of [music,fx,master,limiter,analyser,effectsAnalyser]){try{node?.disconnect();}catch{}}noiseBuffer=meterSamples=effectsSamples=null;try{await ctx?.close();}catch{}}
+  getStatus(){const output=measure(analyser,meterSamples),effects=effectsVolume>0?measure(effectsAnalyser,effectsSamples):{rms:0,peak:0};return {enabled:enabled&&!disposed,state:disposed?'closed':ctx?.state??'uninitialized',played,lastEffect,activeVoices:voices.size,musicVolume,effectsVolume,...output,effectsRms:effects.rms,effectsPeak:effects.peak,maxScheduleLateMs:Number(maxScheduleLateMs.toFixed(3)),woodSampleState,woodSampleCount:woodSamples.length,woodSampleSource,woodSampleVariant};},
+  async dispose(){if(disposed)return;disposed=true;enabled=false;generation++;woodLoadGeneration++;woodSampleState='disposed';woodSamples=[];woodAbort?.abort();silence();for(const node of [music,fx,master,limiter,analyser,effectsAnalyser]){try{node?.disconnect();}catch{}}noiseBuffer=meterSamples=effectsSamples=null;try{await ctx?.close();}catch{}}
  };
 }

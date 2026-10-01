@@ -1,0 +1,361 @@
+{
+  "date": "2026-10-01T13:04:20.491Z",
+  "sampleRate": 44100,
+  "seconds": 4,
+  "baseline": "v1.0.0-rc.9",
+  "checks": [
+    {
+      "case": "preview",
+      "before": {
+        "rms": 0.02550806994143609,
+        "activeRms": 0.03093178912017158,
+        "peak": 0.15623940527439117,
+        "nonzeroSamples": 119962,
+        "woodSampleState": "synth",
+        "woodSampleCount": 0,
+        "recordedStarts": []
+      },
+      "after": {
+        "rms": 0.02513038248573261,
+        "activeRms": 0.029816421832127814,
+        "peak": 0.15623940527439117,
+        "nonzeroSamples": 125310,
+        "woodSampleState": "ready",
+        "woodSampleCount": 5,
+        "recordedStarts": [
+          {
+            "time": 0.49,
+            "duration": 0.24501133786848073
+          }
+        ]
+      },
+      "gainDb": -0.12957000991929118,
+      "pass": true
+    },
+    {
+      "case": "wood walking",
+      "before": {
+        "rms": 0.0043643813050688405,
+        "activeRms": 0.024689788675682646,
+        "peak": 0.09743031114339828,
+        "nonzeroSamples": 5512,
+        "woodSampleState": "synth",
+        "woodSampleCount": 0,
+        "recordedStarts": []
+      },
+      "after": {
+        "rms": 0.0020863060027621863,
+        "activeRms": 0.008407993962561875,
+        "peak": 0.06929987668991089,
+        "nonzeroSamples": 10861,
+        "woodSampleState": "ready",
+        "woodSampleCount": 5,
+        "recordedStarts": [
+          {
+            "time": 0.03,
+            "duration": 0.24501133786848073
+          }
+        ]
+      },
+      "gainDb": -6.410893583491719,
+      "pass": true
+    },
+    {
+      "case": "wood running",
+      "before": {
+        "rms": 0.00522219767764381,
+        "activeRms": 0.029542550953080074,
+        "peak": 0.1169029250741005,
+        "nonzeroSamples": 5512,
+        "woodSampleState": "synth",
+        "woodSampleCount": 0,
+        "recordedStarts": []
+      },
+      "after": {
+        "rms": 0.002389663783182909,
+        "activeRms": 0.010100422265342896,
+        "peak": 0.08290362358093262,
+        "nonzeroSamples": 9874,
+        "woodSampleState": "ready",
+        "woodSampleCount": 5,
+        "recordedStarts": [
+          {
+            "time": 0.03,
+            "duration": 0.24501133786848073
+          }
+        ]
+      },
+      "gainDb": -6.790330113408021,
+      "pass": true
+    },
+    {
+      "case": "wood crouching",
+      "before": {
+        "rms": 0.001514027125081819,
+        "activeRms": 0.008565019221420158,
+        "peak": 0.03315545618534088,
+        "nonzeroSamples": 5512,
+        "woodSampleState": "synth",
+        "woodSampleCount": 0,
+        "recordedStarts": []
+      },
+      "after": {
+        "rms": 0.0007238604307129633,
+        "activeRms": 0.002858727930332733,
+        "peak": 0.023595385253429413,
+        "nonzeroSamples": 11310,
+        "woodSampleState": "ready",
+        "woodSampleCount": 5,
+        "recordedStarts": [
+          {
+            "time": 0.03,
+            "duration": 0.24501133786848073
+          }
+        ]
+      },
+      "gainDb": -6.409576381855433,
+      "pass": true
+    },
+    {
+      "case": "wood walk cadence",
+      "before": {
+        "rms": 0,
+        "activeRms": 0,
+        "peak": 0,
+        "nonzeroSamples": 0,
+        "woodSampleState": "synth",
+        "woodSampleCount": 0,
+        "recordedStarts": []
+      },
+      "after": {
+        "rms": 0.006943552938074229,
+        "activeRms": 0.013994620558752974,
+        "peak": 0.1378851681947708,
+        "nonzeroSamples": 43425,
+        "woodSampleState": "ready",
+        "woodSampleCount": 5,
+        "recordedStarts": [
+          {
+            "time": 0.03,
+            "duration": 0.24501133786848073
+          },
+          {
+            "time": 0.42999999999999994,
+            "duration": 0.24848072562358275
+          },
+          {
+            "time": 0.83,
+            "duration": 0.24816326530612245
+          },
+          {
+            "time": 1.23,
+            "duration": 0.24848072562358275
+          }
+        ]
+      },
+      "gainDb": null,
+      "pass": true
+    },
+    {
+      "case": "wood run cadence",
+      "before": {
+        "rms": 0,
+        "activeRms": 0,
+        "peak": 0,
+        "nonzeroSamples": 0,
+        "woodSampleState": "synth",
+        "woodSampleCount": 0,
+        "recordedStarts": []
+      },
+      "after": {
+        "rms": 0.011567598601300706,
+        "activeRms": 0.01725907542499693,
+        "peak": 0.1661319136619568,
+        "nonzeroSamples": 79241,
+        "woodSampleState": "ready",
+        "woodSampleCount": 5,
+        "recordedStarts": [
+          {
+            "time": 0.03,
+            "duration": 0.24501133786848073
+          },
+          {
+            "time": 0.2563157894736842,
+            "duration": 0.24848072562358275
+          },
+          {
+            "time": 0.4826315789473684,
+            "duration": 0.24816326530612245
+          },
+          {
+            "time": 0.7089473684210527,
+            "duration": 0.24848072562358275
+          },
+          {
+            "time": 0.9352631578947369,
+            "duration": 0.24866213151927438
+          },
+          {
+            "time": 1.161578947368421,
+            "duration": 0.24861678004535148
+          },
+          {
+            "time": 1.3878947368421053,
+            "duration": 0.24866213151927438
+          },
+          {
+            "time": 1.6142105263157895,
+            "duration": 0.24816326530612245
+          }
+        ]
+      },
+      "gainDb": null,
+      "pass": true
+    },
+    {
+      "case": "stone walking",
+      "before": {
+        "rms": 0.003812598473955292,
+        "activeRms": 0.022993203911241808,
+        "peak": 0.08965122699737549,
+        "nonzeroSamples": 4850,
+        "woodSampleState": "synth",
+        "woodSampleCount": 0,
+        "recordedStarts": []
+      },
+      "after": {
+        "rms": 0.003812598473955292,
+        "activeRms": 0.022993203911241808,
+        "peak": 0.08965122699737549,
+        "nonzeroSamples": 4850,
+        "woodSampleState": "ready",
+        "woodSampleCount": 5,
+        "recordedStarts": []
+      },
+      "gainDb": 0,
+      "pass": true
+    },
+    {
+      "case": "rug walking",
+      "before": {
+        "rms": 0.0024847226611191707,
+        "activeRms": 0.014657707996118185,
+        "peak": 0.04786548390984535,
+        "nonzeroSamples": 5069,
+        "woodSampleState": "synth",
+        "woodSampleCount": 0,
+        "recordedStarts": []
+      },
+      "after": {
+        "rms": 0.0024847226611191707,
+        "activeRms": 0.014657707996118185,
+        "peak": 0.04786548390984535,
+        "nonzeroSamples": 5069,
+        "woodSampleState": "ready",
+        "woodSampleCount": 5,
+        "recordedStarts": []
+      },
+      "gainDb": 0,
+      "pass": true
+    },
+    {
+      "case": "rug crouching",
+      "before": {
+        "rms": 0.000865416990907422,
+        "activeRms": 0.005105209424816263,
+        "peak": 0.016283374279737473,
+        "nonzeroSamples": 5069,
+        "woodSampleState": "synth",
+        "woodSampleCount": 0,
+        "recordedStarts": []
+      },
+      "after": {
+        "rms": 0.000865416990907422,
+        "activeRms": 0.005105209424816263,
+        "peak": 0.016283374279737473,
+        "nonzeroSamples": 5069,
+        "woodSampleState": "ready",
+        "woodSampleCount": 5,
+        "recordedStarts": []
+      },
+      "gainDb": 0,
+      "pass": true
+    },
+    {
+      "case": "music",
+      "before": {
+        "rms": 0.006695647015792524,
+        "activeRms": 0.007973501986079882,
+        "peak": 0.03982611745595932,
+        "nonzeroSamples": 124390,
+        "woodSampleState": "synth",
+        "woodSampleCount": 0,
+        "recordedStarts": []
+      },
+      "after": {
+        "rms": 0.006695647021352791,
+        "activeRms": 0.007973501992701318,
+        "peak": 0.03982612118124962,
+        "nonzeroSamples": 124390,
+        "woodSampleState": "ready",
+        "woodSampleCount": 5,
+        "recordedStarts": []
+      },
+      "gainDb": 7.2130247977036484e-9,
+      "pass": true
+    },
+    {
+      "case": "silent effects",
+      "before": {
+        "rms": 0,
+        "activeRms": 0,
+        "peak": 0,
+        "nonzeroSamples": 0,
+        "woodSampleState": "synth",
+        "woodSampleCount": 0,
+        "recordedStarts": []
+      },
+      "after": {
+        "rms": 0,
+        "activeRms": 0,
+        "peak": 0,
+        "nonzeroSamples": 0,
+        "woodSampleState": "ready",
+        "woodSampleCount": 5,
+        "recordedStarts": []
+      },
+      "gainDb": null,
+      "pass": true
+    },
+    {
+      "case": "overlap stress",
+      "before": {
+        "rms": 0.04029780370116875,
+        "activeRms": 0.05870432015150505,
+        "peak": 0.46678540110588074,
+        "nonzeroSamples": 83123,
+        "woodSampleState": "synth",
+        "woodSampleCount": 0,
+        "recordedStarts": []
+      },
+      "after": {
+        "rms": 0.04029780380208584,
+        "activeRms": 0.058704320298517264,
+        "peak": 0.46678540110588074,
+        "nonzeroSamples": 83123,
+        "woodSampleState": "ready",
+        "woodSampleCount": 5,
+        "recordedStarts": [
+          {
+            "time": 0.49,
+            "duration": 0.24501133786848073
+          }
+        ]
+      },
+      "gainDb": 2.175192383230526e-8,
+      "pass": true
+    }
+  ],
+  "pass": true,
+  "version": "1.0.0-rc.10"
+}

@@ -15,6 +15,11 @@ await get('/assets/characters/character-a.glb',200);
 await get('/assets/characters/Textures/texture-a.png',200);
 await get('/assets/fonts/noto-thai.ttf',200);
 for(const id of ['wood_floor','beige_wall_001','stone_wall_02'])await get('/assets/textures/'+id+'_diff_1k.jpg',200);
+await Promise.all(Array.from({length:5},async(_,i)=>{
+ const path='/assets/audio/wood-00'+i+'.ogg',response=await get(path,200),published=Buffer.from(await response.arrayBuffer()),local=await readFile('dist'+path);
+ checks.push({name:'wood sample '+i+' content and MIME',pass:response.headers.get('content-type')?.includes('audio/ogg')&&createHash('sha256').update(published).digest('hex')===createHash('sha256').update(local).digest('hex')});
+}));
+await get('/assets/licenses/kenney-impact-sounds.txt',200);
 checks.push({name:'mansion floor-plan control',pass:html.includes('id="house-map"')});
 const bagMarkup=html.match(/<dialog id="bag-dialog"[\s\S]*?<\/dialog>/)?.[0]||'';
 checks.push({name:'investigator bag contains time, evidence and settings',pass:['clock-label','progress-count','tab-journal','settings','floor-label'].every(id=>bagMarkup.includes('id="'+id+'"'))});
@@ -23,6 +28,7 @@ checks.push({name:'continuous staircase guidance',pass:html.includes('Shift to r
 checks.push({name:'sound preview and separate effects settings',pass:bundle.includes('Test sounds')&&bundle.includes('Effects volume')&&bundle.includes('data-test-sounds')});
 checks.push({name:'movement and memory sound effects included',pass:bundle.includes('soundSurface')&&bundle.includes('memoryEnter')&&bundle.includes('secretUnlock')&&bundle.includes('soundEnabled')});
 checks.push({name:'isolated effects preview and signal meter',pass:bundle.includes('sound-meter')&&bundle.includes('soundPreviewEffectsPeak')&&bundle.includes('Music pauses briefly')&&bundle.includes('Effects signal level')});
+checks.push({name:'recorded wood walking and running auditions',pass:bundle.includes('woodWalkPreview')&&bundle.includes('woodRunPreview')&&bundle.includes('data-test-wood')&&bundle.includes('https://kenney.nl/assets/impact-sounds')});
 await get('/api/health',200);
 const status=await (await get('/api/status',200)).json();
 const expectedVersion=JSON.parse(await readFile('package.json','utf8')).version;

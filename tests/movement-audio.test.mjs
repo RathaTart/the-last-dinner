@@ -1,7 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createMovementAudio,movementSurface,RUG_SIZES} from '../movement-audio.js';
-import {moveInvestigator,roomAt,WALK_SPEED} from '../navigation.js';
+import {moveInvestigator,roomAt,WALK_SPEED,RUN_SPEED,CROUCH_SPEED} from '../navigation.js';
+import {createMovementInput} from '../movement-input.js';
+import {MOVEMENT_PROFILES,stepInterval} from '../movement-profile.js';
 import {doors,roomLayouts} from '../mansion-layout.js';
 const fixture=()=>{const events=[];return {events,sound:createMovementAudio((name,options)=>events.push({name,...options}),{doorways:doors})};};
 const feet=events=>events.filter(e=>e.name==='footstep');
@@ -13,14 +15,14 @@ test('actual travel produces the same footsteps at 15/30/60/144 FPS',()=>{
    sound.beginFrame();const next=moveInvestigator(p,{x:0,z:-1},1/fps,{continuous:true});
    sound.move({distance:Math.hypot(next.x-p.x,next.y-p.y,next.z-p.z),mode:'walk',surface:'wood'});p=next;
   }
-  assert.equal(feet(events).length,11,fps+' FPS');assert.ok(feet(events).every(e=>e.mode==='walk'&&e.surface==='wood'&&!e.stair));
+  assert.equal(feet(events).length,8,fps+' FPS');assert.ok(feet(events).every(e=>e.mode==='walk'&&e.surface==='wood'&&!e.stair));
  }
 });
 
 test('first actual step is responsive, later steps use travelled stride distance',()=>{
  const {events,sound}=fixture();sound.beginFrame();sound.move({distance:.14});assert.equal(events.length,0);
  sound.move({distance:.01});assert.equal(feet(events).length,1);
- sound.beginFrame();sound.move({distance:.64});assert.equal(feet(events).length,1);
+ sound.beginFrame();sound.move({distance:.71});assert.equal(feet(events).length,1);
  sound.move({distance:.01});assert.equal(feet(events).length,2);
 });
 
@@ -41,10 +43,10 @@ test('idle, blocked, suppressed input and explicit reset cannot queue deferred f
 });
 
 test('mode changes preserve normalized stride without emitting an extra stationary step',()=>{
- const {events,sound}=fixture();sound.beginFrame();sound.move({distance:.15});sound.beginFrame();sound.move({distance:.325,mode:'walk'});
- sound.move({distance:.525,mode:'run'});assert.equal(feet(events).length,2);assert.equal(feet(events)[1].mode,'run');
- sound.beginFrame();sound.move({distance:.225,mode:'crouch'});assert.equal(feet(events).length,2);
- sound.move({distance:.225,mode:'crouch'});assert.equal(feet(events).length,3);assert.equal(feet(events)[2].mode,'crouch');
+ const {events,sound}=fixture();sound.beginFrame();sound.move({distance:.15});sound.beginFrame();sound.move({distance:.36,mode:'walk'});
+ sound.move({distance:.43,mode:'run'});assert.equal(feet(events).length,2);assert.equal(feet(events)[1].mode,'run');
+ sound.beginFrame();sound.move({distance:.25,mode:'crouch'});assert.equal(feet(events).length,2);
+ sound.move({distance:.25,mode:'crouch'});assert.equal(feet(events).length,3);assert.equal(feet(events)[2].mode,'crouch');
  sound.move({distance:0,mode:'run'});assert.equal(feet(events).length,3);
 });
 
@@ -54,8 +56,50 @@ test('stair footsteps count full 3D distance and carry stair material metadata',
   sound.beginFrame();const next=moveInvestigator(p,{x:0,z:-1},1/60,{continuous:true}),d=Math.hypot(next.x-p.x,next.y-p.y,next.z-p.z);travel+=d;
   sound.move({distance:d,surface:movementSurface({staircase:'grand'}),stair:true});p=next;
  }
- assert.ok(Math.abs(travel-WALK_SPEED)<1e-6);assert.equal(feet(events).length,4);assert.ok(feet(events).every(e=>e.stair&&e.surface==='wood'));
+ assert.ok(Math.abs(travel-WALK_SPEED)<1e-6);assert.equal(feet(events).length,3);assert.ok(feet(events).every(e=>e.stair&&e.surface==='wood'));
  sound.beginFrame();sound.reset();sound.move({distance:.15,surface:movementSurface({staircase:'service'}),stair:true});assert.equal(feet(events).at(-1).surface,'stone');
+});
+
+test('actual keyboard travel has distinct walk, run and crouch speeds and cadence at every frame rate',()=>{
+ for(const fps of [15,30,60,144]){
+  const results={};
+  for(const [mode,speed,steps]of [['walk',WALK_SPEED,15],['run',RUN_SPEED,27],['crouch',CROUCH_SPEED,11]]){
+   let clock=0,p={x:0,y:0,z:3.1,floor:'ground'},travel=0;
+   const events=[],input=createMovementInput(()=>clock),sound=createMovementAudio((name,options)=>events.push({name,...options,time:clock/1000}));
+   input.set('KeyW','keyboard',true,0);
+   if(mode==='run')input.set('ShiftLeft','keyboard',true,0);
+   if(mode==='crouch')input.toggleCrouch(0);
+   for(let frame=1;frame<=fps*6;frame++){
+    // Reverse once per second to keep the entire test on unobstructed hall floor.
+    if(frame>1&&(frame-1)%fps===0){
+     const previous=Math.floor((frame-1)/fps)%2?'KeyW':'KeyS',next=previous==='KeyW'?'KeyS':'KeyW';
+     input.set(previous,'keyboard',false,clock);input.set(next,'keyboard',true,clock);
+    }
+    clock=frame*1000/fps;sound.beginFrame();
+    for(const segment of input.read(clock)){
+     const selected=segment.crouch?'crouch':segment.run?'run':'walk';
+     const next=moveInvestigator(p,{x:segment.horizontal,z:-segment.forward},segment.dt,{continuous:true,mode:selected});
+     const distance=Math.hypot(next.x-p.x,next.y-p.y,next.z-p.z);travel+=distance;
+     sound.move({distance,mode:selected,surface:'wood',input:!!(segment.horizontal||segment.forward)});p=next;
+    }
+   }
+   const footsteps=feet(events),interval=(footsteps.at(-1).time-footsteps[0].time)/(footsteps.length-1);
+   assert.ok(Math.abs(travel-speed*6)<1e-7,mode+' actual distance at '+fps+' FPS');
+   assert.equal(footsteps.length,steps,mode+' cadence at '+fps+' FPS');
+   assert.ok(footsteps.every(e=>e.mode===mode));results[mode]={travel,interval};
+  }
+  assert.ok(results.run.travel>results.walk.travel*2,'running travels more than twice as far');
+  assert.ok(Math.abs(results.walk.interval-.4)<.01,'walk settles to 2.5 steps/sec');
+  assert.ok(Math.abs(results.run.interval-.86/3.8)<.01,'run settles to about 4.4 steps/sec');
+  assert.ok(results.run.interval<results.walk.interval*.6,'running has a clearly faster cadence');
+  for(const mode of ['walk','run','crouch'])assert.ok(Math.abs(results[mode].interval-stepInterval(mode))<.01,'shared '+mode+' preview timing matches actual footfalls');
+ }
+});
+
+test('shared movement profiles are immutable and unknown preview modes use walking cadence',()=>{
+ assert.ok(Object.isFrozen(MOVEMENT_PROFILES));
+ for(const profile of Object.values(MOVEMENT_PROFILES))assert.ok(Object.isFrozen(profile));
+ assert.equal(stepInterval('unknown'),stepInterval('walk'));assert.equal(stepInterval('toString'),stepInterval('walk'));
 });
 
 test('per-frame cap consumes excess distance without an audio backlog',()=>{

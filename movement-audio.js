@@ -1,5 +1,6 @@
 import {roomLayouts} from './mansion-layout.js';
-export const STEP_STRIDES=Object.freeze({walk:.65,run:1.05,crouch:.45});
+import {MOVEMENT_PROFILES} from './movement-profile.js';
+export const STEP_STRIDES=Object.freeze(Object.fromEntries(Object.entries(MOVEMENT_PROFILES).map(([mode,profile])=>[mode,profile.stride])));
 // These are the aligned, room-centred rugs rendered by buildMansion's rug()
 // calls, including their actual visible border. Stairs always override them.
 export const RUG_SIZES=Object.freeze({foyer:[2.65,2.3],dining:[6.6,5.1],library:[6.2,7.5],bedroom:[5.5,6],grandHall:[1.65,9.6],landing:[1.55,11.4],gallery:[4.3,14.8]});

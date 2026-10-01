@@ -1,8 +1,9 @@
 import {MANSION_BOUNDS,roomLayouts,walls,doors,doorFrameObstacles,furniture,furnitureBounds,floorY,stairObstacles,staircases,passages as architecturalPassages} from './mansion-layout.js';
+import {MOVEMENT_PROFILES} from './movement-profile.js';
 export const PLAYER_RADIUS=.2;
-export const WALK_SPEED=2.3;
-export const RUN_SPEED=4.3;
-export const CROUCH_SPEED=1.15;
+export const WALK_SPEED=MOVEMENT_PROFILES.walk.speed;
+export const RUN_SPEED=MOVEMENT_PROFILES.run.speed;
+export const CROUCH_SPEED=MOVEMENT_PROFILES.crouch.speed;
 export const INTERACTION_RANGE=1.65;
 const wallBounds=w=>[w.x-w.width/2,w.x+w.width/2,w.z-w.depth/2,w.z+w.depth/2];
 export const floorObstacles=Object.fromEntries(Object.keys(floorY).map(floor=>[floor,[...walls.filter(w=>w.floor===floor).map(wallBounds),...furniture.filter(f=>f.solid&&roomLayouts[f.room].floor===floor).map(furnitureBounds),...stairObstacles[floor],...doorFrameObstacles[floor]]]));

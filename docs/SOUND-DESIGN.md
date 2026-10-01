@@ -1,25 +1,30 @@
 # Sound design
 
-The house uses original synthesized music, ambience and interaction sounds. No downloaded recordings, external sound service, paid assets or additional application are needed. Audio waits for a real player interaction before creating/resuming its device. With the Sound preference enabled, the first click or key press unlocks playback. A saved mute prevents this automatic unlock; the Sound button and explicit Settings preview can enable playback again. Sound is optional: clues, puzzle results, memory moments and the hidden-panel sequence remain available as text and visual controls.
+The house combines original synthesized music and effects with five free CC0 wooden-footstep recordings from [Kenney's Impact Sounds](https://kenney.nl/assets/impact-sounds). The recordings and license are self-hosted; their provenance is recorded in [ASSETS.md](ASSETS.md). Audio waits for a real player interaction before creating/resuming its device. With the Sound preference enabled, the first click or key press unlocks playback. A saved mute prevents this automatic unlock; the Sound button and explicit Settings previews can enable playback again. Sound is optional: clues, puzzle results, memory moments and the hidden-panel sequence remain available as text and visual controls.
 
 The sound palette should feel close, subdued and material-based: worn wood, stone, paper, fabric, brass and a restrained score. Short feedback confirms an action; it does not announce whether an NPC or an AI-generated reply is truthful. Avoid loud horror stingers, repeated reward fanfares and voices layered over dialogue.
 
 ## Runtime responsibilities
 
-- [`audio.js`](../audio.js) owns WebAudio synthesis, music/effects buses, mute, cached volume levels, voice limits and cancellation.
+- [`audio.js`](../audio.js) owns WebAudio synthesis, recorded-step loading/playback, music/effects buses, mute, cached volume levels, voice limits and cancellation.
 - [`scene.js`](../scene.js) reports actual investigator movement and room/stance changes. It does not own an AudioContext. [`movement-audio.js`](../movement-audio.js) samples floor finishes and advances footstep cadence from distance traveled, including height on stair slopes.
 - [`app.js`](../app.js) reports discrete story and interface actions after their relevant state checks succeed.
 - [`mansion-layout.js`](../mansion-layout.js) defines rooms, floors and continuous stair routes; [`mansion-environment.js`](../mansion-environment.js) renders their visible materials.
+- [`movement-profile.js`](../movement-profile.js) shares movement speeds and stride timing between navigation, movement sounds and previews.
 
-One shared noise buffer provides the short tactile components. Oscillators, gain envelopes and filtering supply tonal and mechanical detail. Cues have bounded duration, a 24-voice limit and a shared compressor. Cue-specific cooldowns suppress repeated bursts. There is no network request or AI call for a sound.
+One shared noise buffer provides synthesized tactile components. Oscillators, gain envelopes and filtering supply tonal and mechanical detail. Cues have bounded duration, a 24-voice limit and a shared compressor. Cue-specific cooldowns suppress repeated bursts. Only the initial self-hosted recording loads need network requests; cue playback needs no AI call or external sound service.
 
 Each effects cue allocates all its nodes before scheduling. The engine then shifts every source, envelope and pitch event together to 30 ms after allocation completes, preserving the timing between impacts and preview steps. Short effects cannot expire while a slow device is still creating their nodes. `maxScheduleLateMs` records the largest observed allocation delay in milliseconds; it excludes the intentional 30 ms lookahead.
+
+The five wooden contacts load and decode in the background after audio initialization, with a five-second timeout. Normal play uses synthesized wooden contacts while loading or if any file fails to load/decode; failure does not trigger an automatic retry. Successful loading only caches the recordings; it does not resume or play audio after mute. Disposal aborts loading and rejects stale completion. `woodSampleState`, `woodSampleCount` and `woodSampleSource` expose loading status and whether the last scheduled wooden contact used a recording or synthesis.
+
+Recorded wooden steps choose among five variants without consecutive repetition. Their natural attacks are preserved, with a short fade at the tail. Walking uses playback rate 1; running uses 1.1 and gain ×1.2; crouching uses .96 and gain ×.34. Small rate/gain variations soften repetition. Stone and rug contacts, the score and all other effects remain synthesized.
 
 ## Cue vocabulary and triggers
 
 | Cue | Trigger | Intended character |
 |---|---|---|
-| `footstep` | Actual traveled distance; options `surface`, `mode`, `stair` | Short impact; wood creak on wooden stairs, firmer stone contact, softened rug contact |
+| `footstep` | Actual traveled distance; options `surface`, `mode`, `stair` | Recorded wooden contact with a synthesized fallback; firmer stone and softened rug contact |
 | `stance` | Crouch/stand state changes | Quiet clothing movement; no repeated sound each frame |
 | `door` | Crossing a real doorway | Restrained timber/mechanical movement; walking into a wall is silent |
 | `bagOpen`, `bagClose` | Bag changes between closed/open | Paper/leather movement and a light clasp |
@@ -33,6 +38,7 @@ Each effects cue allocates all its nodes before scheduling. The engine then shif
 | `ending` | Choosing an ending; option `id` | Restrained closing motif appropriate to that ending |
 | `testTone` | Reference tones at the beginning of the Settings preview | Clear 660/880 Hz pings, easier to hear on small speakers than a bass-only cue |
 | `preview` | Explicit Settings sound test | Reference pings followed by wood, stone, crouched rug, bag, memory and success cues; subject to the current effects level |
+| `woodWalkPreview`, `woodRunPreview` | Dedicated Settings wooden-footstep tests | Four walking or eight running wooden contacts at the corresponding movement cadence; music is temporarily stopped |
 
 Options for footsteps are `surface: 'wood' | 'stone' | 'rug'`, `mode: 'walk' | 'run' | 'crouch'`, and `stair: boolean`. Running gives stronger contact; crouching is quieter. These sounds describe movement, not an implemented NPC-hearing or stealth-detection system.
 
@@ -56,17 +62,23 @@ Visible rugs are axis-aligned around each room's centre. Their sizes below come 
 | Upstairs landing | 1.55 × 11.4 |
 | Gallery | 4.3 × 14.8 |
 
-The scene sampler uses these visible rug footprints for rug-specific footsteps. Update both the renderer and sampler when a rug moves or changes size. The first contact follows 0.15 m of actual movement; subsequent stride distances are 0.65 m walking, 1.05 m running and 0.45 m crouched, with at most two reported steps in one frame. The audio engine also guards footsteps with an 0.08-second cooldown.
+The scene sampler uses these visible rug footprints for rug-specific footsteps. Update both the renderer and sampler when a rug moves or changes size. The first contact follows 0.15 m of actual movement, with at most two reported steps in one frame. The audio engine also guards footsteps with an 0.08-second cooldown. Shared movement profiles give these approximate rates during steady, unobstructed movement:
+
+| Mode | Speed, m/s | Distance between footfalls, m | Footfalls/s |
+|---|---:|---:|---:|
+| Walk | 1.8 | 0.72 | 2.50 |
+| Run | 3.8 | 0.86 | 4.42 |
+| Crouch | 0.9 | 0.50 | 1.80 |
 
 ## Mute, levels and lifetime
 
 The Sound control mutes both buses, and its preference survives reloads and other Settings changes. The Music slider controls the score; Effects controls footsteps, ambience, interface and story cues. Saved levels must be cached before the AudioContext is created so that a saved zero does not produce a brief default-volume sound when Sound is enabled.
 
-Settings sliders apply live, and Save settings persists their levels. Closing or replacing the modal restores saved levels if they were not saved. A Settings preview uses the visible Effects level and temporarily stops music for four seconds so the score cannot mask the effects. It then restores the current visible slider values. Closing/replacing Settings, saving, changing a slider, hiding the page or muting clears the restore timer, preventing a delayed callback from applying stale levels. Effects set to zero produces a silent preview.
+Settings sliders apply live, and Save settings persists their levels. Closing or replacing the modal restores saved levels if they were not saved. The general sound test and dedicated wooden walk/run tests use the visible Effects level. They stop music while preparing the test, await recording readiness or fallback, then start a four-second playback/restoration window so the score cannot mask the effects. Afterwards they restore the current visible slider values. Closing/replacing Settings, saving, changing a slider, hiding the page or muting cancels a pending preview and clears its restore timer, preventing stale callbacks from starting playback or applying old levels. Effects set to zero produces a silent preview.
 
 A preview does not alter evidence, trust, puzzles, NPC time, save progression or story state. Previewing explicitly enables Sound and persists that preference, while leaving unsaved slider levels uncommitted. Sound is shown as playing only when the engine is enabled and its AudioContext is running.
 
-The calibrated mix raises the original source levels and holds a short audible body before each exponential release. Footsteps include higher frequencies for small-speaker playback. User volume levels remain separate from this calibration: zero stays silent. Source peaks are bounded and the master compressor controls overlap; rendered measurements below check the tested mix for clipping.
+The calibrated synthesized mix raises the original source levels and holds a short audible body before each exponential release. The recorded contacts retain their own attack and body. User volume levels remain separate from this calibration: zero stays silent. Source peaks are bounded and the master compressor controls overlap; rendered measurements below check the tested synthesized mix for clipping.
 
 Turning Sound off cancels queued preview/cue playback and quiets ongoing voices. Backgrounding the page suppresses scheduling and quiets playback. Returning should resume the present ambience without a backlog of footsteps or cutscene sounds. Rapid on/off requests must not let an older asynchronous AudioContext resume restart a stale timer.
 
@@ -84,12 +96,16 @@ AI replies and fallback dialogue do not play success/failure sounds. A generated
 
 ## Verification
 
-Use the Settings sound test to audition actual runtime synthesis; there is no separately approximated WAV preview. Graph/unit checks use deterministic nonzero noise and confirm scheduling, routing and cancellation, but their fake parameters do not render samples. Earlier tests used a constant random value that produced zero noise. Accepted event counts, active voices and a running AudioContext alone do not establish audible output.
+Use Settings sound tests to audition the runtime recordings and synthesis; there is no separately approximated WAV preview. Graph/unit checks use deterministic nonzero noise and confirm scheduling, routing and cancellation, but their fake parameters do not render samples. Earlier tests used a constant random value that produced zero noise. Accepted event counts, active voices and a running AudioContext alone do not establish audible output.
 
 `audio.getStatus()` exposes two live analysers over the most recent 1,024 samples: `rms`/`peak` measure the mixed output after the master and compressor; `effectsRms`/`effectsPeak` measure effects after their volume bus and before the master. Music-only playback must show zero effects output. Settings uses the effects meter, samples repeatedly during playback and retains preview maxima, since one instantaneous reading can fall between short sounds. These measurements confirm digital samples, not the browser's output device, system mixer or physical speakers.
 
-The actual `OfflineAudioContext` results in [AUDIO-PCM-QA.json](AUDIO-PCM-QA.json) compare the runtime engine with rc7 at 44.1 kHz over four-second renders. All eight checks passed: preview, wood/stone/rug walking, rug crouching, music, silent effects and overlapping cues. Walking RMS increased by 23.6–24.2 dB; the overlap stress peak was 0.467 full scale, below clipping, and silent effects remained all zero. These are rendered PCM results; physical speaker listening was not verified.
+The rc9 synthesis calibration results in [AUDIO-PCM-QA.json](AUDIO-PCM-QA.json) compare the engine with rc7 at 44.1 kHz over four-second renders. All eight checks passed: preview, wood/stone/rug walking, rug crouching, music, silent effects and overlapping cues. Walking RMS increased by 23.6–24.2 dB; the overlap stress peak was 0.467 full scale, below clipping, and silent effects remained all zero. These are rendered PCM results; physical speaker listening was not verified. They do not replace validation of the subsequently added recorded footsteps.
 
 Keep rendering the exact engine with nonzero seeded noise for DSP regressions. Check finite samples, useful RMS, bounded peaks and zero output for mute/zero effects, including overlapping cues. Keep the fake lifecycle tests alongside these renders: an offline context adapter does not establish live browser permission or device routing.
 
-Verify a fresh silent start; saved zero levels on enable; music-only and effects-only mixes; Sound off during a preview; rapid mute toggles; background/foreground transitions; walking versus running/crouching; collision silence; both stair directions; doorway crossings; clue rereading; correct/wrong puzzles; memory transitions; cutscene skip; all three endings; and AI timeout/fallback. Confirm the same actions remain understandable and playable with all sound disabled.
+Verify a fresh silent start; saved zero levels on enable; music-only and effects-only mixes; Sound off during preview/loading; recording failure/timeout fallback and disposal cleanup; no consecutive wooden variant repeat; both wood audition buttons; rapid mute toggles; background/foreground transitions; walking versus running/crouching; collision silence; both stair directions; doorway crossings; clue rereading; correct/wrong puzzles; memory transitions; cutscene skip; all three endings; and AI timeout/fallback. Confirm the same actions remain understandable and playable with all sound disabled.
+
+For the recorded wooden contacts, `AUDIO-PCM-QA-rc10.json` records thirteen passing Chrome checks with all five samples decoded. Walking/run auditions emit four/eight recorded contacts at 0.400/0.226-second intervals; the same variant peaks at 0.0693 walking versus 0.0829 running. The stress mix peaks at 0.467; zero effects stays silent. These are digital measurements, not physical speaker listening.
+
+`audio.stopPreview()` cancels only queued voices tagged as one of the three audition cues and clears their cooldowns, so switching or repeating an audition is immediate. Settings calls it on preview cancellation; normal game effects and the score are preserved.

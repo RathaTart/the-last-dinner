@@ -1,11 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createAudio} from '../audio.js';
+import {stepInterval} from '../movement-profile.js';
 
 class Param{
  constructor(value=0){this.value=value;this.events=[];}
  setValueAtTime(value,time){this.value=value;this.events.push({kind:'set',value,time});}
  exponentialRampToValueAtTime(value,time){assert.ok(value>0);this.events.push({kind:'ramp',value,time});}
+ linearRampToValueAtTime(value,time){this.events.push({kind:'linear',value,time});}
  cancelScheduledValues(time){this.events.push({kind:'cancel',time});}
 }
 class Node{
@@ -14,7 +16,7 @@ class Node{
  disconnect(){this.disconnected=true;this.connections=[];}
 }
 class Source extends Node{
- constructor(context,kind){super(context,kind);this.frequency=new Param();this.starts=[];this.stops=[];this.onended=null;context.sources.push(this);}
+ constructor(context,kind){super(context,kind);this.frequency=new Param();this.playbackRate=new Param(1);this.starts=[];this.stops=[];this.onended=null;context.sources.push(this);}
  start(time){this.starts.push(time);}
  stop(time){this.stops.push(time);}
  finish(){this.onended?.();}
@@ -27,14 +29,14 @@ class FakeContext{
  createOscillator(){return new Source(this,'oscillator');}
  createBufferSource(){return new Source(this,'noise');}
  createBiquadFilter(){const node=new Node(this,'filter');node.frequency=new Param();node.Q=new Param();return node;}
- createBuffer(channels,length,rate){const data=new Float32Array(length),buffer={channels,length,rate,getChannelData:()=>data};this.buffers.push(buffer);return buffer;}
+ createBuffer(channels,length,rate){const data=new Float32Array(length),buffer={channels,numberOfChannels:channels,length,rate,duration:length/rate,getChannelData:()=>data};this.buffers.push(buffer);return buffer;}
  async resume(){this.resumeCalls++;this.state='running';}
  async suspend(){this.suspendCalls++;this.state='suspended';}
  async close(){this.state='closed';}
 }
-function harness(context=new FakeContext()){
+function harness(context=new FakeContext(),options={}){
  const intervals=new Map();let id=0,hidden=false,created=0,randomStep=0;
- const audio=createAudio({contextFactory:()=>{created++;return context;},isHidden:()=>hidden,random:()=>++randomStep%2?.25:.75,scheduleInterval:fn=>{intervals.set(++id,fn);return id;},cancelInterval:id=>intervals.delete(id)});
+ const audio=createAudio({contextFactory:()=>{created++;return context;},isHidden:()=>hidden,random:()=>++randomStep%2?.25:.75,scheduleInterval:fn=>{intervals.set(++id,fn);return id;},cancelInterval:id=>intervals.delete(id),sampleLoader:async()=>{throw Error('synthetic-only test');},...options});
  return {audio,context,intervals,created:()=>created,setDocumentHidden:value=>hidden=value};
 }
 
@@ -210,4 +212,103 @@ test('slow node allocation cannot expire short effects or split tone, noise and 
  }
  assert.equal(tone.frequency.events[0].time,tone.starts[0]);assert.ok(Math.abs(tone.frequency.events.at(-1).time-tone.starts[0]-.085)<1e-9);
  assert.ok(h.audio.getStatus().maxScheduleLateMs>=250);assert.ok(h.audio.getStatus().activeVoices<=24);await h.audio.dispose();
+});
+
+function woodBuffer(index=0){
+ const data=Float32Array.from([.8,-.4,.2,0]);
+ return {index,duration:.24,numberOfChannels:1,getChannelData:()=>data};
+}
+function pendingWood(){
+ const jobs=[];return {jobs,loader:(url,context,{signal})=>new Promise((resolve,reject)=>jobs.push({url,context,signal,resolve,reject})),finish:()=>jobs.forEach((job,index)=>job.resolve(woodBuffer(index)))};
+}
+
+test('wood loads once without blocking startup, and uses synthesis until all samples decode',async()=>{
+ const pending=pendingWood(),h=harness(new FakeContext(),{sampleLoader:pending.loader});h.audio.setVolumes(0,.65);
+ assert.deepEqual(await h.audio.whenWoodReady(),{state:'unloaded',count:0});assert.equal(pending.jobs.length,0);
+ await h.audio.setEnabled(true);assert.equal(pending.jobs.length,5);assert.equal(h.audio.getStatus().woodSampleState,'loading');
+ assert.equal(h.audio.play('footstep',{surface:'wood'}),true);assert.equal(h.audio.getStatus().woodSampleSource,'synth');assert.equal(h.context.sources.length,2);
+ await h.audio.setEnabled(false);await h.audio.setEnabled(true);assert.equal(pending.jobs.length,5,'re-enabling never starts a second download');
+ const before=h.context.sources.length;pending.finish();assert.deepEqual(await h.audio.whenWoodReady(),{state:'ready',count:5});assert.equal(h.context.sources.length,before,'decoding cannot schedule a sound');
+ h.context.currentTime+=.2;assert.equal(h.audio.play('footstep',{surface:'wood'}),true);assert.equal(h.context.sources.length,before+1);assert.equal(h.audio.getStatus().woodSampleSource,'sample');
+ for(let i=0;i<5;i++){h.context.currentTime+=.2;h.audio.play('footstep');}assert.equal(pending.jobs.length,5);await h.audio.dispose();
+});
+
+test('default sample loader fetches each self-hosted file once and decodes it in the active context',async()=>{
+ const context=new FakeContext(),requests=[],decoded=[];
+ context.decodeAudioData=async bytes=>{decoded.push(bytes);return woodBuffer(decoded.length-1);};
+ const h=harness(context,{sampleLoader:undefined,fetcher:async(url,options)=>{requests.push({url,options});return {ok:true,arrayBuffer:async()=>new ArrayBuffer(8)};}});h.audio.setVolumes(0,.6);
+ await h.audio.setEnabled(true);assert.deepEqual(await h.audio.whenWoodReady(),{state:'ready',count:5});
+ assert.deepEqual(requests.map(request=>request.url),Array.from({length:5},(_,index)=>`/assets/audio/wood-00${index}.ogg`));assert.equal(decoded.length,5);
+ for(const request of requests){assert.equal(request.options.cache,'force-cache');assert.equal(request.options.signal.aborted,false);}
+ await h.audio.setEnabled(false);await h.audio.setEnabled(true);assert.equal(requests.length,5);await h.audio.dispose();
+});
+
+test('failed decode and the total load deadline leave a permanent playable synthetic fallback',async()=>{
+ const context=new FakeContext();let requests=0;context.decodeAudioData=async()=>{throw Error('unsupported codec');};
+ const h=harness(context,{sampleLoader:undefined,fetcher:async()=>{requests++;return {ok:true,arrayBuffer:async()=>new ArrayBuffer(8)};}});h.audio.setVolumes(0,.65);
+ await h.audio.setEnabled(true);assert.deepEqual(await h.audio.whenWoodReady(),{state:'failed',count:0});assert.equal(requests,5);
+ assert.equal(h.audio.play('footstep'),true);assert.equal(h.audio.getStatus().woodSampleSource,'synth');await h.audio.setEnabled(false);await h.audio.setEnabled(true);assert.equal(requests,5);await h.audio.dispose();
+ const pending=pendingWood(),timed=harness(new FakeContext(),{sampleLoader:pending.loader,sampleTimeoutMs:10});timed.audio.setVolumes(0,.65);await timed.audio.setEnabled(true);
+ assert.deepEqual(await timed.audio.whenWoodReady(),{state:'failed',count:0});assert.ok(pending.jobs.every(job=>job.signal.aborted));assert.equal(timed.audio.play('footstep'),true);
+ pending.finish();await Promise.resolve();assert.equal(timed.audio.getStatus().woodSampleCount,0,'late decode cannot undo timeout fallback');await timed.audio.dispose();
+});
+
+test('finishing sample downloads while muted or hidden never resumes or schedules audio',async()=>{
+ for(const mode of ['mute','hidden','zero']){
+  const pending=pendingWood(),h=harness(new FakeContext(),{sampleLoader:pending.loader});h.audio.setVolumes(0,.65);await h.audio.setEnabled(true);
+  if(mode==='mute')await h.audio.setEnabled(false);else if(mode==='hidden')await h.audio.setHidden(true);else h.audio.setVolumes(0,0);
+  const resumes=h.context.resumeCalls;pending.finish();assert.deepEqual(await h.audio.whenWoodReady(),{state:'ready',count:5});
+  assert.equal(h.context.resumeCalls,resumes);assert.equal(h.context.sources.length,0);assert.equal(h.audio.getStatus().activeVoices,0);assert.equal(h.audio.play('woodWalkPreview'),false);
+  if(mode==='mute')await h.audio.setEnabled(true);else if(mode==='hidden')await h.audio.setHidden(false);else h.audio.setVolumes(0,.65);
+  assert.equal(h.context.sources.length,0,'re-enabling does not replay delayed footsteps');assert.equal(h.audio.play('footstep'),true);assert.equal(h.audio.getStatus().woodSampleSource,'sample');await h.audio.dispose();
+ }
+});
+
+test('disposing aborts pending sample work promptly and ignores any late decoded buffers',async()=>{
+ const pending=pendingWood(),h=harness(new FakeContext(),{sampleLoader:pending.loader});h.audio.setVolumes(0,.65);await h.audio.setEnabled(true);const ready=h.audio.whenWoodReady();
+ await h.audio.dispose();assert.deepEqual(await ready,{state:'disposed',count:0});assert.ok(pending.jobs.every(job=>job.signal.aborted));
+ pending.finish();await Promise.resolve();await Promise.resolve();assert.equal(h.audio.getStatus().woodSampleState,'disposed');assert.equal(h.audio.getStatus().woodSampleCount,0);assert.equal(h.context.sources.length,0);assert.equal(h.audio.play('footstep'),false);assert.equal(await h.audio.setEnabled(true),false);
+});
+
+test('recorded wood keeps its attack, varies all five contacts without repeats, and distinguishes run and crouch',async()=>{
+ let choice=.5;const h=harness(new FakeContext(),{sampleLoader:async url=>woodBuffer(Number(url.match(/(\d+)\.ogg$/)[1])),random:()=>choice});h.audio.setVolumes(0,.65);await h.audio.setEnabled(true);await h.audio.whenWoodReady();
+ const variants=[],steps=[];
+ for(let i=0;i<25;i++){choice=(i%5)/5+.05;h.context.currentTime+=.2;assert.equal(h.audio.play('footstep',{surface:'wood'}),true);variants.push(h.audio.getStatus().woodSampleVariant);steps.push(h.context.sources.at(-1));}
+ assert.equal(new Set(variants).size,5);assert.ok(variants.every((variant,index)=>!index||variant!==variants[index-1]));assert.ok(steps.every(source=>source.buffer!==h.context.buffers[0]));
+ choice=.5;const modes={};for(const mode of ['walk','run','crouch']){h.context.currentTime+=.2;h.audio.play('footstep',{surface:'wood',mode,stair:true});const source=h.context.sources.at(-1),envelope=source.connections[0];modes[mode]={rate:source.playbackRate.events[0].value,gain:envelope.gain.events[0].value};
+  assert.equal(source.playbackRate.events[0].time,source.starts[0]);assert.equal(envelope.gain.events[0].time,source.starts[0]);assert.ok(envelope.gain.events[0].value>.0001,'contact begins at full gain instead of swallowing the recording attack');assert.ok(!envelope.gain.events.some(event=>event.kind==='ramp'));assert.equal(envelope.gain.events.at(-1).kind,'linear');assert.equal(envelope.gain.events.at(-1).value,0);
+  assert.ok(envelope.gain.events[0].value*source.buffer.getChannelData(0)[0]<=.26,'the decoded peak keeps per-source headroom');
+ }
+ assert.equal(modes.walk.rate,1);assert.equal(modes.run.rate,1.1);assert.equal(modes.crouch.rate,.96);assert.ok(modes.run.gain>modes.walk.gain);assert.ok(modes.crouch.gain<modes.walk.gain*.5);
+ assert.ok(h.audio.getStatus().activeVoices<=24);for(const source of h.context.sources)source.finish();assert.equal(h.audio.getStatus().activeVoices,0);assert.ok(h.context.sources.every(source=>source.disconnected));await h.audio.dispose();
+});
+
+test('wood auditions use the live footstep path and shared walking versus running cadence',async()=>{
+ const h=harness(new FakeContext(),{sampleLoader:async()=>woodBuffer()});h.audio.setVolumes(0,.65);await h.audio.setEnabled(true);await h.audio.whenWoodReady();
+ for(const [name,mode,count] of [['woodWalkPreview','walk',4],['woodRunPreview','run',8]]){
+  h.context.currentTime+=4;const before=h.context.sources.length;assert.equal(h.audio.play(name),true);const sources=h.context.sources.slice(before);assert.equal(sources.length,count);
+  for(let i=0;i<sources.length;i++){assert.equal(sources[i].buffer.numberOfChannels,1);assert.ok(Math.abs(sources[i].starts[0]-sources[0].starts[0]-i*stepInterval(mode))<1e-9);}
+  assert.ok(sources.at(-1).starts[0]-sources[0].starts[0]<2.3);assert.equal(h.audio.getStatus().lastEffect,name);
+ }
+ assert.ok(stepInterval('run')<stepInterval('walk')*.6);assert.ok(h.audio.getStatus().activeVoices<=24);await h.audio.setHidden(true);assert.equal(h.audio.getStatus().activeVoices,0);await h.audio.dispose();
+});
+
+test('a recorded contact retains FX routing and lookahead even when source allocation advances the clock',async()=>{
+ const context=new FakeContext(),h=harness(context,{sampleLoader:async()=>woodBuffer()});h.audio.setVolumes(0,.4);await h.audio.setEnabled(true);await h.audio.whenWoodReady();
+ for(const method of ['createBufferSource','createGain']){const original=context[method].bind(context);context[method]=()=>{context.currentTime+=.15;return original();};}
+ assert.equal(h.audio.play('footstep',{surface:'wood',mode:'run'}),true);const source=context.sources.at(-1),envelope=source.connections[0],fx=context.nodes.filter(node=>node.kind==='gain')[2];
+ assert.deepEqual(envelope.connections,[fx]);assert.equal(fx.gain.value,.4);assert.ok(source.starts[0]>=context.currentTime+.02&&source.starts[0]<=context.currentTime+.04);assert.equal(source.playbackRate.events[0].time,source.starts[0]);assert.equal(envelope.gain.events[0].time,source.starts[0]);assert.ok(source.stops[0]>context.currentTime);assert.ok(h.audio.getStatus().maxScheduleLateMs>=300);
+ h.audio.setVolumes(0,0);assert.equal(h.audio.getStatus().activeVoices,0);assert.equal(source.stops.at(-1),context.currentTime);assert.ok(source.disconnected&&envelope.disconnected);await h.audio.dispose();
+});
+
+test('preview cancellation stops queued audition voices and permits immediate retests while preserving game sounds',async()=>{
+ const h=harness(new FakeContext(),{sampleLoader:async()=>woodBuffer()});await h.audio.setEnabled(true);await h.audio.whenWoodReady();
+ const music=[...h.context.sources];assert.ok(music.length>0);assert.equal(h.audio.play('bagOpen'),true);const bag=h.context.sources.slice(music.length);assert.equal(bag.length,2);
+ const before=h.context.sources.length;assert.equal(h.audio.play('woodWalkPreview'),true);const walking=h.context.sources.slice(before);assert.equal(walking.length,4);assert.ok(walking.some(source=>source.starts[0]>h.context.currentTime+.5));
+ assert.equal(h.audio.stopPreview(),4);for(const source of walking){assert.equal(source.stops.at(-1),h.context.currentTime);assert.ok(source.disconnected);}
+ for(const source of [...music,...bag]){assert.equal(source.disconnected,false);assert.notEqual(source.stops.at(-1),h.context.currentTime);}assert.equal(h.intervals.size,1);assert.equal(h.audio.play('bagOpen'),false,'normal gameplay cooldown remains intact');
+ assert.equal(h.audio.play('woodWalkPreview'),true,'cancel clears the walking audition cooldown');assert.equal(h.audio.stopPreview(),4);
+ assert.equal(h.audio.play('woodRunPreview'),true);assert.equal(h.audio.stopPreview(),8);assert.equal(h.audio.play('woodRunPreview'),true,'running audition can be restarted immediately');h.audio.stopPreview();
+ const fullBefore=h.context.sources.length;assert.equal(h.audio.play('preview'),true);const full=h.context.sources.slice(fullBefore);assert.ok(full.length>8);assert.equal(h.audio.stopPreview(),full.length,'nested preview bag and success cues belong to the top-level audition');assert.ok(full.every(source=>source.disconnected));assert.equal(h.audio.play('preview'),true);h.audio.stopPreview();
+ assert.equal(h.audio.getStatus().activeVoices,music.length+bag.length);assert.equal(h.audio.stopPreview(),0);await h.audio.dispose();
 });

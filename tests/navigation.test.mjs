@@ -177,11 +177,30 @@ test('run and crouch speeds are consistent on flat ground and full 3D stair slop
  for(const [mode,speed]of [['walk',WALK_SPEED],['run',RUN_SPEED],['crouch',CROUCH_SPEED]]){
   const flat={x:0,y:0,z:3.1,floor:'ground'},m=moveInvestigator(flat,{x:1,z:1},.05,{continuous:true,mode});
   assert.ok(Math.abs(Math.hypot(m.x-flat.x,m.y-flat.y,m.z-flat.z)-speed*.05)<1e-7);
-  const slope={x:-1.3,y:2.2*.7/3.15,z:-6.2,floor:'ground',staircase:'grand'},s=moveInvestigator(slope,{x:0,z:-1},.05,{continuous:true,mode});
-  assert.ok(Math.abs(Math.hypot(s.x-slope.x,s.y-slope.y,s.z-slope.z)-speed*.05)<1e-7,mode+' speed follows 3D surface');
+  for(const slope of [
+   {x:-1.3,y:1.1,z:-7.075,floor:'ground',staircase:'grand'},
+   {x:1.3,y:3.3,z:-7.075,floor:'upper',staircase:'grand'},
+   {x:-3.8,y:-1.1,z:-7.075,floor:'ground',staircase:'service'},
+   {x:-1,y:-3.3,z:-7.075,floor:'basement',staircase:'service'}
+  ])for(const z of [-1,1]){
+   const s=moveInvestigator(slope,{x:0,z},.05,{continuous:true,mode});
+   assert.ok(Math.abs(Math.hypot(s.x-slope.x,s.y-slope.y,s.z-slope.z)-speed*.05)<1e-7,mode+' speed follows '+slope.staircase+' 3D surface in direction '+z);
+  }
  }
  const route=[[-1.3,0,-5.5],[-1.3,2.2,-8.95],[1.3,2.2,-8.95],[1.3,4.4,-5.5],[1.3,4.4,-4.7]],start={x:-1.3,y:0,z:-4.7,floor:'ground'};
- const walked=walkRoute(start,route),ran=walkRoute(start,route,{mode:'run'});assert.ok(ran.frames<walked.frames*.65,'run reaches upstairs faster');
+ const walked=walkRoute(start,route),ran=walkRoute(start,route,{mode:'run'});assert.ok(ran.frames<walked.frames*.55,'run reaches upstairs in about half the time');
+});
+
+test('all movement modes retain diagonal normalization, frame caps and solid house boundaries',()=>{
+ for(const [mode,speed]of [['walk',WALK_SPEED],['run',RUN_SPEED],['crouch',CROUCH_SPEED]]){
+  const start={x:0,y:0,z:3.1,floor:'ground'};
+  const diagonal=moveInvestigator(start,{x:1,z:1},10,{continuous:true,mode});
+  assert.ok(Math.abs(Math.hypot(diagonal.x-start.x,diagonal.y-start.y,diagonal.z-start.z)-speed*.1)<1e-7,mode+' caps a delayed diagonal frame');
+  let edge={x:0,y:0,z:8.7,floor:'ground'};
+  for(let i=0;i<60;i++)edge=moveInvestigator(edge,{x:0,z:1},.1,{continuous:true,mode});
+  assert.ok(edge.z<=9.3+1e-8,mode+' cannot cross the estate wall');assert.ok(walkable(edge.x,edge.z));
+  const still=moveInvestigator(edge,{x:0,z:1},.1,{continuous:true,mode});assert.deepEqual(still,edge,mode+' remains stationary at the wall');
+ }
 });
 
 test('stair sides, shaft void and wrong-height flights cannot be entered or exited in midair',()=>{

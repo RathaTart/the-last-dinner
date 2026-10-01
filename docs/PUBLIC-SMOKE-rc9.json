@@ -1,11 +1,11 @@
 {
-  "date": "2026-10-01T13:12:48.694Z",
+  "date": "2026-10-01T12:24:35.068Z",
   "url": "https://d3imrhbpvqr1t2.cloudfront.net",
-  "release": "rc10-2026-10-01T13-11-23-702Z",
+  "release": "rc9-2026-10-01T12-23-02-207Z",
   "status": {
     "dialogue": "llm",
     "provider": "Amazon Bedrock",
-    "version": "1.0.0-rc.10"
+    "version": "1.0.0-rc.9"
   },
   "checks": [
     {
@@ -19,7 +19,7 @@
       "pass": true
     },
     {
-      "path": "/app.js?v=4a39b4613da51ae5",
+      "path": "/app.js?v=29530008082e2671",
       "status": 200,
       "expected": 200,
       "pass": true
@@ -65,62 +65,6 @@
       "pass": true
     },
     {
-      "path": "/assets/audio/wood-004.ogg",
-      "status": 200,
-      "expected": 200,
-      "pass": true
-    },
-    {
-      "name": "wood sample 4 content and MIME",
-      "pass": true
-    },
-    {
-      "path": "/assets/audio/wood-000.ogg",
-      "status": 200,
-      "expected": 200,
-      "pass": true
-    },
-    {
-      "name": "wood sample 0 content and MIME",
-      "pass": true
-    },
-    {
-      "path": "/assets/audio/wood-001.ogg",
-      "status": 200,
-      "expected": 200,
-      "pass": true
-    },
-    {
-      "name": "wood sample 1 content and MIME",
-      "pass": true
-    },
-    {
-      "path": "/assets/audio/wood-002.ogg",
-      "status": 200,
-      "expected": 200,
-      "pass": true
-    },
-    {
-      "path": "/assets/audio/wood-003.ogg",
-      "status": 200,
-      "expected": 200,
-      "pass": true
-    },
-    {
-      "name": "wood sample 2 content and MIME",
-      "pass": true
-    },
-    {
-      "name": "wood sample 3 content and MIME",
-      "pass": true
-    },
-    {
-      "path": "/assets/licenses/kenney-impact-sounds.txt",
-      "status": 200,
-      "expected": 200,
-      "pass": true
-    },
-    {
       "name": "mansion floor-plan control",
       "pass": true
     },
@@ -149,10 +93,6 @@
       "pass": true
     },
     {
-      "name": "recorded wood walking and running auditions",
-      "pass": true
-    },
-    {
       "path": "/api/health",
       "status": 200,
       "expected": 200,
@@ -166,8 +106,8 @@
     },
     {
       "name": "deployed API release version",
-      "expected": "1.0.0-rc.10",
-      "actual": "1.0.0-rc.10",
+      "expected": "1.0.0-rc.9",
+      "actual": "1.0.0-rc.9",
       "pass": true
     },
     {
