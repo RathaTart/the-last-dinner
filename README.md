@@ -4,7 +4,7 @@ A short, bilingual browser mystery in a theatrical cutaway house. Explore four r
 
 **Play:** https://d3imrhbpvqr1t2.cloudfront.net
 
-Version **1.0.0-rc.2** adds direct investigator movement, nearby interaction, darkness outside the current room, mouse camera rotation and a four-shot opening cutscene. It retains the complete one-case progression, animated characters, clinic memory, procedural music, save migration/import/export, hints and graphics settings. Read [current release evidence](docs/RELEASE-rc2.md) and [earlier checks and limits](docs/RELEASE.md). The [Thai production plan](PRODUCTION-PLAN.md) records the original design scope.
+Version **1.0.0-rc.3** fixes investigator keyboard movement and walk/idle transitions. Held keys move continuously, releasing stops, taps update facing, and walking remains consistent across ordinary frame rates. A movement key or Escape returns from a conversation/evidence panel to exploration; typing in chat keeps the character still. The investigator now has a “You” marker. It retains rc.2's room darkness, mouse camera rotation, opening cutscene and the complete one-case progression. Read [current release evidence](docs/RELEASE-rc3.md), [rc.2 features](docs/RELEASE-rc2.md) and [earlier checks and limits](docs/RELEASE.md). The [Thai production plan](PRODUCTION-PLAN.md) records the original design scope.
 
 ## Run and verify
 
@@ -31,7 +31,7 @@ Watch or skip the opening. **WASD / arrow keys** move the investigator relative 
 
 Drag either mouse button to rotate the camera; scroll to zoom; **R** restores the original angle. Exterior walls become transparent when the camera looks through them. In Settings, Replay opening preserves your evidence and restores your position afterward. Reduced motion replaces cinematic camera travel with cuts.
 
-Approach the dining clock, kitchen ledger and piano book. Show each object to a nearby resident to open their memory. Each memory has three moments; the second requires an observation puzzle before its evidence becomes available. Correct the clock, inspect the payer field, and move Lamai's point of listening. Memories are staged observation scenes; movement resumes in the present. Close the conversation or evidence panel with Back before walking onward. Pausing time freezes NPC routines while still allowing the investigator to walk.
+Approach the dining clock, kitchen ledger and piano book. Show each object to a nearby resident to open their memory. Each memory has three moments; the second requires an observation puzzle before its evidence becomes available. Correct the clock, inspect the payer field, and move Lamai's point of listening. Memories are staged observation scenes; movement resumes in the present. Use a movement key, Escape or Back to leave a conversation/evidence panel. Text fields and modal windows suppress walking; after leaving a modal or switching windows, press movement again. Pausing time freezes NPC routines while still allowing the investigator to walk.
 
 Once all six clues are collected, arrange the timeline and select supporting evidence, then draw your conclusion. Help the residents prepare an apology, confession and invitation to make the reunion possible. Other choices lead to a letter or continued distance. Wrong answers are recoverable. The `?` button provides three hint levels; the final level asks before revealing answers.
 

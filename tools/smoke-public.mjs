@@ -7,6 +7,10 @@ const checks=[];
 async function get(path,status){const r=await fetch(config.URL+path);checks.push({path,status:r.status,expected:status,pass:r.status===status});return r;}
 const html=await (await get('/',200)).text();
 checks.push({name:'browser cache version',pass:/app\.js\?v=[a-f0-9]{16}/.test(html)&&/style\.css\?v=[a-f0-9]{16}/.test(html)});
+const bundlePath=html.match(/src="(\/app\.js\?v=[a-f0-9]{16})"/)?.[1];
+if(!bundlePath)throw Error('Published browser bundle missing');
+const bundle=await (await get(bundlePath,200)).text();
+checks.push({name:'published browser bundle matches local build',pass:createHash('sha256').update(bundle).digest('hex')===createHash('sha256').update(await readFile('dist/app.js')).digest('hex')});
 await get('/assets/characters/character-a.glb',200);
 await get('/assets/characters/Textures/texture-a.png',200);
 await get('/assets/fonts/noto-thai.ttf',200);

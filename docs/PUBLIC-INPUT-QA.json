@@ -1,0 +1,44 @@
+{
+  "version": "1.0.0-rc.3",
+  "url": "https://d3imrhbpvqr1t2.cloudfront.net/",
+  "keyboardTapDirections": [
+    {
+      "key": "w",
+      "dx": -0.03500000000000003,
+      "dz": -0.04800000000000004,
+      "walkingAfterRelease": "false"
+    },
+    {
+      "key": "s",
+      "dx": 0.038000000000000034,
+      "dz": 0.0519999999999996,
+      "walkingAfterRelease": "false"
+    },
+    {
+      "key": "a",
+      "dx": -0.119,
+      "dz": 0.08700000000000063,
+      "walkingAfterRelease": "false"
+    },
+    {
+      "key": "d",
+      "dx": 0.020999999999999908,
+      "dz": -0.015000000000000568,
+      "walkingAfterRelease": "false"
+    }
+  ],
+  "desktop": {
+    "width": 1248,
+    "height": 704,
+    "horizontalOverflow": false
+  },
+  "progressBeforeAndAfterReload": "0 / 6",
+  "modalMovementBlocked": true,
+  "walkingWithNpcTimePaused": true,
+  "cameraDragYaw": {
+    "before": 0.635,
+    "after": 0.285
+  },
+  "consoleWarningsAndErrors": [],
+  "notes": "Keyboard holds use the automated event/controller tests. Local browser pointer hold and text/conversation checks are documented in RELEASE-rc3.md."
+}

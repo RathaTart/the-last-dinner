@@ -1,11 +1,11 @@
 {
-  "date": "2026-10-01T07:59:03.467Z",
+  "date": "2026-10-01T06:04:07.194Z",
   "url": "https://d3imrhbpvqr1t2.cloudfront.net",
-  "release": "rc3-2026-10-01T07-58-04-720Z",
+  "release": "rc2-2026-10-01T06-02-14-108Z",
   "status": {
     "dialogue": "llm",
     "provider": "Amazon Bedrock",
-    "version": "1.0.0-rc.3"
+    "version": "1.0.0-rc.2"
   },
   "checks": [
     {
@@ -16,16 +16,6 @@
     },
     {
       "name": "browser cache version",
-      "pass": true
-    },
-    {
-      "path": "/app.js?v=4d689b3322b0656d",
-      "status": 200,
-      "expected": 200,
-      "pass": true
-    },
-    {
-      "name": "published browser bundle matches local build",
       "pass": true
     },
     {
@@ -60,8 +50,8 @@
     },
     {
       "name": "deployed API release version",
-      "expected": "1.0.0-rc.3",
-      "actual": "1.0.0-rc.3",
+      "expected": "1.0.0-rc.2",
+      "actual": "1.0.0-rc.2",
       "pass": true
     },
     {

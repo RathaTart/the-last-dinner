@@ -1,6 +1,6 @@
 import {rooms,people,clues,memoryScenes,timelineEvents,preparations,endings,hints} from './content.js';
 export {rooms,people,clues,memoryScenes,timelineEvents,preparations,endings,hints};
-export const VERSION='1.0.0-rc.2';
+export const VERSION='1.0.0-rc.3';
 export function simulationDelta(now,last){return Number.isFinite(now)&&Number.isFinite(last)?Math.max(0,Math.min((now-last)/1000,.04)):0;}
 export function freshState(){return {version:2,started:false,introSeen:false,room:'dining',evidence:[],trust:{father:0,cook:0,sister:0},observations:{father:false,cook:false,sister:false},reconstructed:false,resolved:false,preparations:[],ending:null,conversations:{father:[],cook:[],sister:[]},hintLevel:0};}
 export function restoreState(raw){
