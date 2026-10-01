@@ -49,11 +49,11 @@ npm run dev
 Open [localhost:8795](http://127.0.0.1:8795/). The server binds to loopback and uses authored dialogue by default. No account, API key, or AWS configuration is needed to play the full case locally.
 
 ```sh
-npm test
 npm run build
+npm test
 ```
 
-The build bundles the browser application and self-hosted assets into `dist/`. Tests cover story progression, save validation, navigation and stairs, held input, movement/audio timing, sound lifecycle, dialogue filtering, quotas, and HTTP behavior. [GitHub CI](.github/workflows/ci.yml) runs locked installation, tests, and build on Node.js 22; it contains no cloud deployment step.
+The build bundles the browser application and self-hosted assets into `dist/`. Run it before tests: the HTTP integration tests serve those built files. Tests cover story progression, save validation, navigation and stairs, held input, movement/audio timing, sound lifecycle, dialogue filtering, quotas, and HTTP behavior. [GitHub CI](.github/workflows/ci.yml) runs locked installation, build, and tests on Node.js 22; it contains no cloud deployment step.
 
 For optional Bedrock dialogue, copy `.env.example` to `.env`, select your existing AWS profile, and set `DIALOGUE_PROVIDER=bedrock`. Credentials use the AWS SDK credential chain and stay outside browser code. Deployment scripts target the project's AWS stack; adapt their configuration before deploying a fork. [Operations](docs/OPERATIONS.md) covers deployment, rollback, and disabling AI.
 
@@ -108,4 +108,4 @@ The music motif and remaining house effects are original WebAudio synthesis. All
 
 **Spoilers:** the [complete playthrough](docs/PLAYTHROUGH.md), [story bible and puzzle solutions](docs/STORY-BIBLE.md), and [storyboard](docs/STORYBOARD.md) reveal the case, memories, and endings.
 
-[Bug reports](https://github.com/RathaTart/the-last-dinner/issues) and focused improvements are welcome. Include browser/device details and reproduction steps; for visual changes, include a screenshot. Keep Thai/English content and story rules consistent, preserve third-party notices, and run `npm test` and `npm run build` before opening a pull request.
+[Bug reports](https://github.com/RathaTart/the-last-dinner/issues) and focused improvements are welcome. Include browser/device details and reproduction steps; for visual changes, include a screenshot. Keep Thai/English content and story rules consistent, preserve third-party notices, and run `npm run build` followed by `npm test` before opening a pull request.
