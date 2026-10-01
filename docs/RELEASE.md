@@ -1,5 +1,7 @@
 # Release candidate 1.0.0-rc.1
 
+Historical release evidence. The current investigator-controls update is documented in [RELEASE-rc2.md](RELEASE-rc2.md); its preceding HTTP report is preserved in `PUBLIC-SMOKE-rc1.json`.
+
 October 1, 2026, Bangkok. Public demo: https://d3imrhbpvqr1t2.cloudfront.net
 
 ## Implemented from the production plan

@@ -1,7 +1,7 @@
 import {spawnSync} from 'node:child_process';
 import {readFile,writeFile} from 'node:fs/promises';
 const release=process.argv[2];
-if(!/^rc1-[0-9TZ-]+$/.test(release||''))throw Error('Pass a release ID from .release/deployments/');
+if(!/^rc[1-9][0-9]*-[0-9TZ-]+$/.test(release||''))throw Error('Pass a release ID from .release/deployments/');
 const manifest=JSON.parse(await readFile('.release/deployments/'+release+'.json','utf8'));
 function aws(args){const r=spawnSync('aws',[...args,'--profile','codex-tart','--region','us-east-1','--no-cli-pager'],{encoding:'utf8',maxBuffer:10*1024*1024});if(r.status!==0)throw Error(r.stderr);return r.stdout;}
 if(JSON.parse(aws(['sts','get-caller-identity'])).Account!=='541099637009'||manifest.Account!=='541099637009')throw Error('Account mismatch');

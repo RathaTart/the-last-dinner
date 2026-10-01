@@ -12,6 +12,9 @@ await get('/assets/characters/Textures/texture-a.png',200);
 await get('/assets/fonts/noto-thai.ttf',200);
 await get('/api/health',200);
 const status=await (await get('/api/status',200)).json();
+const expectedVersion=JSON.parse(await readFile('package.json','utf8')).version;
+checks.push({name:'deployed API release version',expected:expectedVersion,actual:status.version,pass:status.version===expectedVersion});
+checks.push({name:'investigator controls and cutscene markup',pass:html.includes('id="interact"')&&html.includes('id="cinematic"')&&html.includes('data-walk="ArrowUp"')});
 await get('/.env',403);
 async function dialogue(data,expected,headers={}){const body=JSON.stringify(data);const r=await fetch(config.URL+'/api/dialogue',{method:'POST',headers:{'Content-Type':'application/json','x-amz-content-sha256':createHash('sha256').update(body).digest('hex'),...headers},body});checks.push({name:'dialogue '+(data.person||'invalid'),status:r.status,expected,pass:r.status===expected});return r;}
 await dialogue({person:'unknown',question:'hello'},400);

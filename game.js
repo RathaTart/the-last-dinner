@@ -1,11 +1,11 @@
 import {rooms,people,clues,memoryScenes,timelineEvents,preparations,endings,hints} from './content.js';
 export {rooms,people,clues,memoryScenes,timelineEvents,preparations,endings,hints};
-export const VERSION='1.0.0-rc.1';
+export const VERSION='1.0.0-rc.2';
 export function simulationDelta(now,last){return Number.isFinite(now)&&Number.isFinite(last)?Math.max(0,Math.min((now-last)/1000,.04)):0;}
-export function freshState(){return {version:2,started:false,room:'dining',evidence:[],trust:{father:0,cook:0,sister:0},observations:{father:false,cook:false,sister:false},reconstructed:false,resolved:false,preparations:[],ending:null,conversations:{father:[],cook:[],sister:[]},hintLevel:0};}
+export function freshState(){return {version:2,started:false,introSeen:false,room:'dining',evidence:[],trust:{father:0,cook:0,sister:0},observations:{father:false,cook:false,sister:false},reconstructed:false,resolved:false,preparations:[],ending:null,conversations:{father:[],cook:[],sister:[]},hintLevel:0};}
 export function restoreState(raw){
  const s=freshState();if(!raw||![1,2].includes(raw.version))return s;
- s.started=raw.started===true;s.room=rooms[raw.room]?raw.room:'dining';s.evidence=Array.isArray(raw.evidence)?[...new Set(raw.evidence.filter(k=>Object.hasOwn(clues,k)))]:[];
+ s.started=raw.started===true;s.introSeen=raw.introSeen===true;s.room=rooms[raw.room]?raw.room:'dining';s.evidence=Array.isArray(raw.evidence)?[...new Set(raw.evidence.filter(k=>Object.hasOwn(clues,k)))]:[];
  for(const p of Object.keys(people)){s.trust[p]=Math.max(0,Math.min(2,Number(raw.trust?.[p])||0));s.observations[p]=raw.observations?.[p]===true||s.evidence.includes({father:'argument',sister:'receipt',cook:'departure'}[p]);s.conversations[p]=Array.isArray(raw.conversations?.[p])?raw.conversations[p].filter(m=>m&&['user','assistant'].includes(m.role)&&typeof m.text==='string').slice(-12).map(m=>({role:m.role,text:m.text.slice(0,1500)})):[];}
  s.reconstructed=s.evidence.length===6&&(raw.reconstructed===true||(raw.version===1&&raw.resolved===true));s.resolved=s.reconstructed&&raw.resolved===true;
  s.preparations=s.resolved&&Array.isArray(raw.preparations)?[...new Set(raw.preparations.filter(id=>Object.hasOwn(preparations,id)))]:[];

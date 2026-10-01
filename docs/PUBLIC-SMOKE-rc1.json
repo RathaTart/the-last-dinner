@@ -1,11 +1,11 @@
 {
-  "date": "2026-10-01T06:04:07.194Z",
+  "date": "2026-09-30T21:46:25.807Z",
   "url": "https://d3imrhbpvqr1t2.cloudfront.net",
-  "release": "rc2-2026-10-01T06-02-14-108Z",
+  "release": "rc1-2026-09-30T21-45-40-117Z",
   "status": {
     "dialogue": "llm",
     "provider": "Amazon Bedrock",
-    "version": "1.0.0-rc.2"
+    "version": "1.0.0-rc.1"
   },
   "checks": [
     {
@@ -46,16 +46,6 @@
       "path": "/api/status",
       "status": 200,
       "expected": 200,
-      "pass": true
-    },
-    {
-      "name": "deployed API release version",
-      "expected": "1.0.0-rc.2",
-      "actual": "1.0.0-rc.2",
-      "pass": true
-    },
-    {
-      "name": "investigator controls and cutscene markup",
       "pass": true
     },
     {

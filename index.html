@@ -16,11 +16,13 @@
  </header>
  <main>
   <section id="world" aria-label="Interactive house">
-   <canvas id="scene" aria-label="Isometric house with four rooms and three residents"></canvas>
+   <canvas id="scene" tabindex="0" aria-label="Walkable house. WASD or arrow keys to move, E to interact, drag to rotate the camera."></canvas>
    <div class="chapter"><span class="eyebrow" data-th="คืนสุดท้าย / ก่อนส่งกุญแจ" data-en="THE LAST NIGHT / BEFORE THE KEYS CHANGE HANDS">คืนสุดท้าย / ก่อนส่งกุญแจ</span><h1 data-th="บ้านที่จำได้" data-en="The house remembers.">บ้านที่จำได้</h1><p data-th="อดีตเดียวกัน ความทรงจำคนละเรื่อง" data-en="One evening. Three versions of the truth.">อดีตเดียวกัน ความทรงจำคนละเรื่อง</p></div>
    <div id="hotspots"></div><div id="memory-banner" hidden></div>
    <div class="scene-footer"><span id="scene-hint"></span><button id="pause" aria-pressed="false">Ⅱ หยุดเวลา</button></div>
-   <div id="memory-controls" hidden></div><div class="room-nav" id="room-nav" aria-label="Choose a room"></div>
+   <div class="investigator-controls" id="investigator-controls"><div class="walk-pad" aria-label="Movement controls"><button data-walk="ArrowUp" aria-label="Walk forward">↑</button><button data-walk="ArrowLeft" aria-label="Walk left">←</button><button data-walk="ArrowDown" aria-label="Walk backward">↓</button><button data-walk="ArrowRight" aria-label="Walk right">→</button></div><button id="interact" disabled><kbd>E</kbd><span id="interact-label">เดินเข้าใกล้เพื่อโต้ตอบ</span></button></div>
+   <div id="memory-controls" hidden></div><div class="room-nav" id="room-nav" aria-label="House map"></div>
+   <section id="cinematic" hidden aria-label="Opening cutscene"><div class="cinema-top"><span>THE LAST DINNER</span><button id="skip-intro" data-th="ข้ามคัตซีน" data-en="Skip cutscene">ข้ามคัตซีน</button></div><div class="cinema-letter" id="cinema-letter"><span data-th="ถึงนักสืบ" data-en="TO THE INVESTIGATOR">ถึงนักสืบ</span><p data-th="ก่อนบ้านจะถูกขาย ช่วยกลับไปฟังคืนสุดท้ายให้ฉันที" data-en="Before the house is sold, please listen to that last evening for me.">ก่อนบ้านจะถูกขาย ช่วยกลับไปฟังคืนสุดท้ายให้ฉันที</p><small data-th="ไม่มีชื่อผู้ส่ง มีเพียงกุญแจบ้าน" data-en="No sender. Only a key.">ไม่มีชื่อผู้ส่ง มีเพียงกุญแจบ้าน</small></div><div class="cinema-caption"><span id="cinema-kicker"></span><h2 id="cinema-title"></h2><p id="cinema-text"></p><div class="cinema-bottom"><div id="cinema-progress" aria-label="Cutscene progress"></div><button id="next-intro" data-th="ถัดไป →" data-en="Next →">ถัดไป →</button></div></div></section>
    <div id="webgl-error" hidden></div>
   </section>
   <aside>
@@ -34,8 +36,8 @@
   <div class="modal-kicker">THE LAST DINNER / A HOUSE OF MEMORIES</div>
   <h2 id="intro-title" data-th="ก่อนบ้านหลังนี้<br>จะเหลือเพียงความทรงจำ" data-en="Before this house<br>becomes a memory.">ก่อนบ้านหลังนี้<br>จะเหลือเพียงความทรงจำ</h2>
   <p data-th="ห้าปีก่อน มีราออกจากบ้านหลังอาหารค่ำ ในคืนเดียวกับที่เงินของครอบครัวหายไป พรุ่งนี้บ้านจะถูกขาย มีคนว่าจ้างคุณให้ค้นหาว่าเกิดอะไรขึ้นจริง" data-en="Five years ago, Mira left after dinner. The family’s money went missing that same night. Tomorrow, the house will be sold. An anonymous client asks you to find what really happened.">ห้าปีก่อน มีราออกจากบ้านหลังอาหารค่ำ ในคืนเดียวกับที่เงินของครอบครัวหายไป พรุ่งนี้บ้านจะถูกขาย มีคนว่าจ้างคุณให้ค้นหาว่าเกิดอะไรขึ้นจริง</p>
-  <div class="intro-steps"><span><b>01</b><span data-th="สำรวจบ้านและนำหลักฐานไปถาม" data-en="Explore. Show the evidence.">สำรวจบ้านและนำหลักฐานไปถาม</span></span><span><b>02</b><span data-th="เข้าสู่ความทรงจำ แล้วหาสิ่งที่ขาดไป" data-en="Step into memories. Find what is missing.">เข้าสู่ความทรงจำ แล้วหาสิ่งที่ขาดไป</span></span><span><b>03</b><span data-th="ประกอบความจริงและเลือกวิธีบอกมัน" data-en="Reconstruct the truth. Choose how to tell it.">ประกอบความจริงและเลือกวิธีบอกมัน</span></span></div>
-  <button id="begin" class="primary" data-th="ก้าวเข้าบ้าน" data-en="Enter the house">ก้าวเข้าบ้าน</button>
+  <div class="intro-steps"><span><b>WASD</b><span data-th="เดินเองด้วย WASD หรือปุ่มลูกศร" data-en="Walk with WASD or arrow keys.">เดินเองด้วย WASD หรือปุ่มลูกศร</span></span><span><b>E</b><span data-th="เดินเข้าใกล้ แล้วกด E เพื่อคุยหรือตรวจของ" data-en="Approach someone or something, then press E.">เดินเข้าใกล้ แล้วกด E เพื่อคุยหรือตรวจของ</span></span><span><b>↻</b><span data-th="ลากเมาส์หมุนกล้อง · ล้อเมาส์ซูม · R คืนมุมกล้อง" data-en="Drag to rotate · scroll to zoom · R to reset.">ลากเมาส์หมุนกล้อง · ล้อเมาส์ซูม · R คืนมุมกล้อง</span></span></div>
+  <button id="begin" class="primary" data-th="เริ่มเรื่องราว" data-en="Begin the story">เริ่มเรื่องราว</button>
   <small data-th="คดีสั้นหนึ่งคดี · บันทึกในเครื่อง · ไม่มีเวลานับถอยหลัง · คำใบ้ ?" data-en="One short case · Saved on this device · No countdown · ? for hints">คดีสั้นหนึ่งคดี · บันทึกในเครื่อง · ไม่มีเวลานับถอยหลัง · คำใบ้ ?</small>
  </dialog>
  <dialog id="case-dialog" aria-label="Case and settings"></dialog>

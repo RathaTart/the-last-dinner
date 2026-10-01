@@ -60,7 +60,7 @@ Wait for `UPDATE_COMPLETE` before publishing. Without `--ai-on`, this operation 
 
 ## Rollback
 
-Keep `.release/deployments/` alongside source backups. Pick a manifest with a published `LambdaVersion`, then:
+Keep `.release/deployments/` alongside source backups. Pick an rc1/rc2 manifest with a published `LambdaVersion`, then:
 
 ```powershell
 node tools/rollback-aws.mjs rc1-YYYY-MM-DDTHH-mm-ss-SSSZ
