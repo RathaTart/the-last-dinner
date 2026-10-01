@@ -25,7 +25,8 @@ if(process.argv.includes('--infrastructure')||process.argv.includes('--update-in
  await build({entryPoints:['lambda.mjs'],outfile:'.release/lambda/index.js',bundle:true,minify:true,platform:'node',format:'cjs',target:'node22',legalComments:'none'});
  const zip=spawnSync('powershell',['-NoProfile','-Command',"Compress-Archive -LiteralPath '.release/lambda/index.js' -DestinationPath '.release/lambda.zip' -Force"],{encoding:'utf8'});if(zip.status!==0)throw Error(zip.stderr);
  const code=JSON.parse(aws(['lambda','update-function-code','--function-name',output.FunctionName,'--zip-file','fileb://.release/lambda.zip','--publish','--query','{Status:LastUpdateStatus,Version:Version}','--output','json']));
- const release='rc'+JSON.parse(await readFile('package.json','utf8')).version.split('rc.')[1]+'-'+new Date().toISOString().replace(/[:.]/g,'-');
+ const version=JSON.parse(await readFile('package.json','utf8')).version;
+ const release=(version.includes('-rc.')?'rc'+version.split('rc.')[1]:'v'+version)+'-'+new Date().toISOString().replace(/[:.]/g,'-');
  aws(['s3','sync','dist/',`s3://${output.Bucket}/releases/${release}/`,'--cache-control','public,max-age=300','--only-show-errors']);
  aws(['s3','sync','dist/',`s3://${output.Bucket}/`,'--cache-control','public,max-age=300','--only-show-errors']);
  aws(['s3','cp','dist/index.html',`s3://${output.Bucket}/index.html`,'--content-type','text/html; charset=utf-8','--cache-control','no-cache','--only-show-errors']);
@@ -34,5 +35,5 @@ if(process.argv.includes('--infrastructure')||process.argv.includes('--update-in
  await mkdir('.release/deployments',{recursive:true});
  await writeFile('.release/deployments/'+release+'.json',JSON.stringify(manifest,null,2));
  await writeFile('deployment.local.json',JSON.stringify(manifest,null,2));
- console.log('Published release candidate: '+output.URL);
+ console.log('Published '+version+': '+output.URL);
 }

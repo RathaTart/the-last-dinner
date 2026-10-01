@@ -1,71 +1,111 @@
-# The Last Dinner — บ้านที่จำได้
+# The Last Dinner
 
-A bilingual horror mystery in a theatrical cutaway mansion. Investigate a concealed mass murder across **three floors, fourteen rooms and six residents**. Compare fourteen clues with six partial memories, open a hidden chamber, reconstruct eight events, and choose whether truth leaves the house with its survivor protected.
+A Thai/English mystery game about a house that remembers, and people who remember differently.
 
-**Play:** https://d3imrhbpvqr1t2.cloudfront.net
+**[Play in your browser](https://d3imrhbpvqr1t2.cloudfront.net/)** · [Controls](docs/CONTROLS.md) · [Mansion design](docs/MANSION-DESIGN.md)
 
-Version **1.0.0-rc.10** replaces wooden footsteps with five self-hosted Kenney CC0 recordings. Variants avoid immediate repeats; running has faster cadence and stronger contact, while crouching is quieter. Walk at 1.8 m/s, hold Shift to run at 3.8 m/s, or crouch at 0.9 m/s. Settings has separate wood walking/running auditions, plus an effects-only meter. Samples load after the first sound gesture; synthesized wood remains a fallback if loading fails. Read the [sound design](docs/SOUND-DESIGN.md).
+A key, a list of names, and an anonymous tape bring an investigator to a mansion on its last night before sale. Six residents carry fragments of the same dinner. Enter their memories, compare testimony with physical evidence, and decide what the truth demands of you.
 
-Walk onto either staircase, turn on its landing, and continue to the next floor; the investigator's height follows the steps. Exploration fills the game window, with time, evidence and case tools inside an investigator's bag. The mansion has a foyer, central hall, upstairs landing and cellar corridor. Furniture placement, visible walls, clue anchors, stair surfaces and collision come from one layout file. Detailed procedural furnishings and local CC0 material maps support the stylized cast. Read the [mansion design](docs/MANSION-DESIGN.md), [storyboard](docs/STORYBOARD.md), and [canon with spoilers](docs/STORY-BIBLE.md). The original case is archived in [STORY-BIBLE-rc3.md](docs/STORY-BIBLE-rc3.md).
+![The investigator exploring the cutaway mansion in The Last Dinner](docs/images/mansion.png)
 
-## Run and verify
+## The game
 
-Node.js 22.9+ and npm are required. From this directory:
+- Explore a theatrical cutaway house: **3 floors, 14 rooms**, physical staircases, and a hidden chamber.
+- Meet **6 residents** following authored routines, and revisit **6 memories** with observation puzzles.
+- Collect **14 pieces of evidence**, reconstruct the evening, and reach **3 endings** shaped by your decisions.
+- Play in Thai or English, with camera-relative movement, room darkness, an investigator's bag, graduated hints, and browser saves.
 
-```powershell
+Approach objects and residents to investigate. Present relevant evidence to earn access to a memory; each memory reveals only what its owner witnessed. Use the bag to compare clues and build the case. Wrong puzzle answers are recoverable, and the complete story works with authored dialogue when AI is unavailable.
+
+## Controls
+
+| Action | Keyboard / mouse |
+|---|---|
+| Move | WASD or arrow keys |
+| Run | Hold Shift while moving |
+| Crouch / stand | C |
+| Inspect / talk nearby | E |
+| Investigator's bag | I, B, or Tab |
+| Floor plan | M |
+| Close a window | Escape |
+| Rotate camera | Drag on the scene |
+| Zoom / reset camera | Mouse wheel / R |
+
+Walk directly onto stairs to change floors. Movement follows the camera, with walking at 1.8 m/s, running at 3.8 m/s, and crouching at 0.9 m/s. Crouching takes precedence over running. Opening a window clears held movement and temporarily pauses resident routines. Close it, then press movement again to continue. The map shows your position; case notes, evidence, time, settings, hints, and save tools live inside the bag.
+
+Touch controls provide held direction and Run buttons, a Crouch toggle, interaction, and a bag button. Sound starts after a player gesture. Settings offers separate Music/Effects levels and walking/running sound auditions; all puzzles can be completed silently. Low graphics and reduced motion are available. See the [bilingual control guide](docs/CONTROLS.md) for details.
+
+## Run locally
+
+Use **Node.js 22.9+ and npm**:
+
+```sh
+git clone https://github.com/RathaTart/the-last-dinner.git
+cd the-last-dinner
 npm ci
 npm run dev
 ```
 
-Open http://127.0.0.1:8795. The local server listens only on loopback. Without configuration, dialogue is authored and no model is contacted.
+Open [localhost:8795](http://127.0.0.1:8795/). The server binds to loopback and uses authored dialogue by default. No account, API key, or AWS configuration is needed to play the full case locally.
 
-```powershell
-npm run build
+```sh
 npm test
-npm audit --omit=dev
+npm run build
 ```
 
-The GitHub Actions workflow performs the same checks when this repository is pushed. It has not been run on GitHub yet. There is no GitHub remote configured.
+The build bundles the browser application and self-hosted assets into `dist/`. Tests cover story progression, save validation, navigation and stairs, held input, movement/audio timing, sound lifecycle, dialogue filtering, quotas, and HTTP behavior. [GitHub CI](.github/workflows/ci.yml) runs locked installation, tests, and build on Node.js 22; it contains no cloud deployment step.
 
-## Play
+For optional Bedrock dialogue, copy `.env.example` to `.env`, select your existing AWS profile, and set `DIALOGUE_PROVIDER=bedrock`. Credentials use the AWS SDK credential chain and stay outside browser code. Deployment scripts target the project's AWS stack; adapt their configuration before deploying a fork. [Operations](docs/OPERATIONS.md) covers deployment, rollback, and disabling AI.
 
-Watch or skip the opening. **WASD / arrow keys** move the investigator relative to the camera. Hold **Shift** to run; press **C** to crouch or stand. Walking is 2.3 m/s, running 4.3 m/s and crouched walking 1.15 m/s, including distance along stair slopes. Crouching takes precedence over held Run until you stand again. **E** talks, inspects or operates the nearby hidden panel. On touchscreens, hold the arrows and Run button; tap Crouch to change stance. Walls and major furniture block movement. Only the current room is illuminated; other-room residents and interaction markers are hidden. During a stair traversal the camera follows your height and reveals the relevant connecting floor.
+## AI, canon, and player data
 
-The scene fills the window during exploration. Click the bag icon or press **I / B / Tab** to open the investigator's bag, which holds time, case notes, evidence, progress, settings and hints. **M** opens the floor plan. The map records your location; it does not move the character. Close the bag with Escape or Return to resume walking. Opening the bag or another modal releases movement and freezes NPC routines; press movement again after closing it. Inside the bag, Tab and Enter operate its controls.
+The deployed dialogue service uses Claude Sonnet 4.5 through Amazon Bedrock for conversational flavor. Thai requests classify an approved theme, then return reviewed Thai lines selected against the player's evidence. English requests can generate short replies from the resident's allowed facts and pass through a conservative spoiler filter. Plot-critical questions use authored text.
 
-Drag either mouse button to rotate the camera; scroll to zoom; **R** restores the original angle. Exterior walls become transparent when the camera looks through them. In Settings, Replay opening preserves your evidence and restores your position afterward. Reduced motion replaces cinematic camera travel with cuts.
+Game rules own evidence, trust, puzzle answers, and endings. Model output cannot change them. Invalid output, provider failure, timeout, and quota exhaustion return authored dialogue. Generated English can still be inaccurate, and theme classification can be imperfect; the canon filter is a practical guard rather than a semantic guarantee.
 
-Approach the dining clock, kitchen ledger and piano book. Show each object to a nearby resident to open their memory. Each memory has three moments; the second requires an observation puzzle before its evidence becomes available. Correct the clock, inspect the payer field, and move Lamai's point of listening. Memories are staged observation scenes; use the bag to review or solve their details and exit the memory to return to present-day movement. Conversation and evidence reading take place in the bag. Text fields and modal windows suppress walking. The bag's Pause control can freeze NPC routines after you return to exploration while still allowing the investigator to walk.
+The backend stores quota counters, anonymous session identifiers, and HMAC-derived IP identifiers with expiry; it does not store raw questions or conversation text. AI requests send the question and bounded fictional context to Bedrock for processing under AWS terms. Browser saves retain progress and conversations, including typed questions, and can be exported from Settings.
 
-Enter through the foyer. The central hall connects the dining room, kitchen, clock workshop and music room. Walk up the grand staircase's west flight, cross its rear turn landing, then follow the east flight onto the upstairs landing. The kitchen service stairs descend on the west flight, turn across the rear landing, and continue on the east flight into the cellar corridor. Both routes work in reverse with the same movement controls; no stair interaction button is required. Inspect the register, marked photograph, door service log and entry names. Each resident has an object and observation puzzle. Corroborate Somchai and Nara, then enter code 312 at the boiler room's hidden panel. The sealed room has no doorway from the cellar corridor. Once all fourteen clues are collected, reconstruct eight events and conclude. Secure an admission, preserve originals and protect the survivor for the fullest ending; other choices leave justice unfinished or bury the file. Wrong answers are recoverable. The bag's hints offer three levels; the final level asks before revealing answers.
+The AI gate reserves at most **24 requests per anonymous session, 80 per IP per UTC day, 200 globally per UTC day, and 2,000 over the release lifetime**. Authored or rejected answers can consume a reservation. Requests are bounded in size, output tokens, and duration; exhaustion keeps the authored game playable.
 
-Progress and conversations are saved in this browser. This case uses schema 3 and a new storage key; the original case save is untouched and can be exported in Settings. Old-case save files cannot be imported into this incompatible story. Settings support low graphics, reduced motion, separate music/effects levels, and save files. Changing languages changes the interface; existing conversation records retain the language in which they were spoken.
+## Engineering choices
 
-## AI and data
+```mermaid
+flowchart LR
+    Browser[Three.js scene + investigator bag] --> Rules[Deterministic game rules]
+    Rules --> Save[Browser save]
+    Browser --> API[Node / Lambda dialogue API]
+    API --> Gate[Session + quota gate]
+    Gate --> Dialogue[Authored / guarded AI dialogue]
+    Dialogue -->|optional AI| Bedrock[Amazon Bedrock]
+```
 
-The public version uses Claude Sonnet 4.5 through Amazon Bedrock to interpret free-form questions. In Thai, the model selects an approved conversational theme and the game returns reviewed Thai lines, including evidence-dependent variations. English uses model-drafted prose with filtering. The UI distinguishes AI-interpreted Thai dialogue, generated dialogue and fallback. Plot-critical questions, evidence, puzzles, trust and endings use authored text and deterministic rules. AI cannot modify game state. Timeout, invalid output, unavailable provider or exhausted quota falls back to authored dialogue, so the entire case remains playable.
-
-For English prose, the model receives the question and the selected fictional resident's allowed facts. Thai classification receives the question, resident identity and theme descriptions; the server selects the appropriate reviewed line using discovered clues. Client conversation history is not supplied as canonical facts. A conservative spoiler filter catches known classes in generated English, but does not prove semantic accuracy. Generated prose can still be awkward or inaccurate, and classification can select an imperfect theme.
-
-Raw questions are not stored by the game's backend. They are sent to Amazon Bedrock when AI is used; their processing is governed by AWS terms. DynamoDB stores counters, signed session identifiers and HMAC-derived IP identifiers with expiry, plus a lifetime aggregate. Browser saves can contain the user's own questions. No login, advertising or analytics tracker is present. See [operations](docs/OPERATIONS.md) for quota and cost details.
-
-To use Bedrock locally, copy `.env.example` to `.env`, set `DIALOGUE_PROVIDER=bedrock`, and use the existing AWS profile. Credentials stay in the user's AWS credential store, never in browser files.
-
-## Release and operations
-
-AWS deployment is scoped to account `541099637009`, profile `codex-tart`, region `us-east-1`; scripts refuse a mismatched account. Infrastructure uses private S3, CloudFront OAC, an IAM-authenticated Lambda URL, DynamoDB counters and narrowly scoped Bedrock access. See [OPERATIONS.md](docs/OPERATIONS.md) for deploy, rollback and shutdown.
-
-## Code and assets
-
-| File | Responsibility |
+| Area | Decision and purpose |
 |---|---|
-| `content.js`, `game.js` | Story, evidence, timeline, progression and save validation |
-| `scene.js`, `mansion-environment.js`, `audio.js` | Three.js mansion, materials, animation, memory staging and WebAudio |
-| `mansion-layout.js`, `navigation.js` | Shared room bounds, door graph, furnishings, clue anchors, continuous stair surfaces, collision and movement speeds |
-| `movement-input.js`, `locomotion.js` | Held movement/run input, crouch stance and animation blending |
-| `app.js` | Investigator bag, interface, dialogue, notebook, settings and saves |
-| `dialogue.mjs`, `dialogue-acts.mjs`, `backend.mjs` | Model context, reviewed Thai acts, fallback, session and quotas |
-| `bedrock.mjs`, `lambda.mjs`, `server.mjs` | Cloud provider and cloud/local HTTP adapters |
-| `tools/` | Build, infrastructure, deployment, rollback and live evaluations |
+| House and movement | `mansion-layout.js` supplies visible architecture, doorways, furniture, clue anchors, collision, and stair surfaces so exploration follows the rendered house. |
+| Presentation | Three.js renders a stylized cutaway mansion with procedural furnishings, local PBR maps, and licensed character bases. Current-room lighting and camera-facing wall fading keep the investigation readable. |
+| Story | `content.js` defines bilingual canon; `game.js` validates progression and saves. Staged memories and evidence gates give every puzzle a reproducible solution. |
+| Movement and sound | Shared movement profiles connect speed, stride, and footfall cadence. WebAudio uses bounded voices, mute/visibility cleanup, and short scheduling lookahead. Five cached wood recordings avoid immediate repeats; loading failure uses synthesized contacts. |
+| Cloud | Private S3 and CloudFront serve the game; Lambda handles dialogue, DynamoDB reserves quotas atomically, and Bedrock access is scoped by IAM. Cloud credentials never enter the client bundle. |
 
-Story, interface, house geometry and synthesized audio were made for this game. Kenney character/furniture assets and recorded wooden footsteps and the downloaded Poly Haven material maps are CC0; self-hosted fonts use the SIL OFL and Three.js uses MIT. See [asset register](docs/ASSETS.md), the machine-readable manifest and included license texts. No commercial game's artwork, music or code is included. The mansion architecture and furnishings are procedural geometry; characters reuse stylized licensed bases. Bespoke character art, a Blender export pipeline, recorded dialogue and broader device/play testing remain production work beyond this release.
+## Scope and next steps
+
+Version **1.0.0** is the first playable release. The mansion and story are bespoke; character bases are stylized third-party assets, resident routines stay within authored rooms, and memories are scripted observation scenes. Bespoke character art, recorded dialogue, broader device/playtesting, and further visual and accessibility work remain production goals. Desktop keyboard/mouse is the primary interaction design; touch controls need continued testing across devices.
+
+## Credits and license
+
+Original project code is released under the [MIT License](LICENSE), copyright 2026 RathaTart. Third-party assets retain their own licenses:
+
+- [Kenney](https://kenney.nl/): CC0 character/furniture assets and five recorded wooden footsteps from [Impact Sounds](https://kenney.nl/assets/impact-sounds).
+- [Poly Haven](https://polyhaven.com/): CC0 wood, plaster, and stone material maps.
+- Noto Sans Thai, DM Sans, and Playfair Display: SIL Open Font License.
+- [Three.js](https://github.com/mrdoob/three.js): MIT.
+
+The music motif and remaining house effects are original WebAudio synthesis. All runtime assets are self-hosted. The [asset register](docs/ASSETS.md), [manifest](docs/ASSET-MANIFEST.json), and [included license texts](assets/licenses/) document provenance. The cutaway atmosphere takes inspiration from *The Sexy Brutale*; no assets from that game are included.
+
+## Documentation and contributions
+
+[Controls](docs/CONTROLS.md), [mansion design](docs/MANSION-DESIGN.md), [sound design](docs/SOUND-DESIGN.md), and [operations](docs/OPERATIONS.md) cover the playable systems and implementation. The [production plan](PRODUCTION-PLAN.md) records the larger development roadmap.
+
+**Spoilers:** the [complete playthrough](docs/PLAYTHROUGH.md), [story bible and puzzle solutions](docs/STORY-BIBLE.md), and [storyboard](docs/STORYBOARD.md) reveal the case, memories, and endings.
+
+[Bug reports](https://github.com/RathaTart/the-last-dinner/issues) and focused improvements are welcome. Include browser/device details and reproduction steps; for visual changes, include a screenshot. Keep Thai/English content and story rules consistent, preserve third-party notices, and run `npm test` and `npm run build` before opening a pull request.

@@ -1,6 +1,6 @@
 import {CASE_ID,floors,rooms,people,clues,EVIDENCE_TOTAL,memoryScenes,memoryPuzzles,timelineEvents,preparations,endings,hints} from './content.js';
 export {CASE_ID,floors,rooms,people,clues,EVIDENCE_TOTAL,memoryScenes,memoryPuzzles,timelineEvents,preparations,endings,hints};
-export const VERSION='1.0.0-rc.10';
+export const VERSION='1.0.0';
 export function simulationDelta(now,last){return Number.isFinite(now)&&Number.isFinite(last)?Math.max(0,Math.min((now-last)/1000,.04)):0;}
 const mapPeople=value=>Object.fromEntries(Object.keys(people).map(id=>[id,typeof value==='function'?value():value]));
 export function freshState(){return {version:3,caseId:CASE_ID,started:false,introSeen:false,room:'foyer',secretOpen:false,evidence:[],trust:mapPeople(0),observations:mapPeople(false),reconstructed:false,resolved:false,preparations:[],ending:null,conversations:mapPeople(()=>[]),hintLevel:0};}
@@ -20,7 +20,7 @@ export function canInspect(state,id,memory){const c=clues[id];return !!c&&(!c.re
 export function canUnlockSecret(state){return ['lock','tunnel'].every(k=>state.evidence.includes(k));}
 export function unlockSecret(state,code){if(!canUnlockSecret(state)||String(code).trim()!=='312')return false;state.secretOpen=true;return true;}
 export function reconstruct(state,answers){if(state.evidence.length!==EVIDENCE_TOTAL)return false;const good=timelineEvents.every(e=>answers[e.id]===e.time)&&answers.clock==='clock'&&answers.payer==='receipt';if(good)state.reconstructed=true;return good;}
-export function solveCase(state,answers){return state.evidence.length===EVIDENCE_TOTAL&&state.reconstructed&&answers.taker==='saran'&&answers.reason==='coverup'&&answers.departure==='rescue';}
+export function solveCase(state,answers){const good=state.evidence.length===EVIDENCE_TOTAL&&state.reconstructed&&answers.taker==='saran'&&answers.reason==='coverup'&&answers.departure==='rescue';if(good)state.resolved=true;return good;}
 export function prepareEnding(state,id,answer){if(!state.resolved||!preparations[id]||answer!==preparations[id].correct)return false;if(!state.preparations.includes(id))state.preparations.push(id);return true;}
 export function canChooseEnding(state,id){return state.resolved&&(id==='distance'||id==='letter'&&['apology','confession'].every(k=>state.preparations.includes(k))||id==='reunion'&&Object.keys(preparations).every(k=>state.preparations.includes(k)));}
 export function chooseEnding(state,id){if(!canChooseEnding(state,id))return false;state.ending=id;return true;}
