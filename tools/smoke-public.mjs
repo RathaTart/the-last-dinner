@@ -20,6 +20,8 @@ const bagMarkup=html.match(/<dialog id="bag-dialog"[\s\S]*?<\/dialog>/)?.[0]||''
 checks.push({name:'investigator bag contains time, evidence and settings',pass:['clock-label','progress-count','tab-journal','settings','floor-label'].every(id=>bagMarkup.includes('id="'+id+'"'))});
 checks.push({name:'minimal play screen has bag and stance controls',pass:html.includes('id="bag-toggle"')&&html.includes('id="run-control"')&&html.includes('id="crouch-control"')});
 checks.push({name:'continuous staircase guidance',pass:html.includes('Shift to run')&&html.includes('C to crouch')&&bundle.includes('Walk up the grand staircase')});
+checks.push({name:'sound preview and separate effects settings',pass:bundle.includes('Test sounds')&&bundle.includes('Effects volume')&&bundle.includes('data-test-sounds')});
+checks.push({name:'movement and memory sound effects included',pass:bundle.includes('soundSurface')&&bundle.includes('memoryEnter')&&bundle.includes('secretUnlock')&&bundle.includes('soundEnabled')});
 await get('/api/health',200);
 const status=await (await get('/api/status',200)).json();
 const expectedVersion=JSON.parse(await readFile('package.json','utf8')).version;

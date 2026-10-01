@@ -22,8 +22,12 @@
 
 ภายในหน้าต่าง Tab ใช้เลื่อนโฟกัสตามปกติ และ Enter ใช้งานปุ่ม เมื่อพิมพ์คำถามหรือกรอกรหัส คีย์ลัดเคลื่อนไหวและกระเป๋าไม่แทรกการพิมพ์ หลักฐานและบทสนทนาบันทึกในเบราว์เซอร์ ส่งออกหรือนำเข้าไฟล์เซฟได้จากการตั้งค่าในกระเป๋า
 
+เสียงเริ่มเมื่อกดเล่นหรือใช้ปุ่มครั้งแรก เปิดกระเป๋าแล้วใช้ปุ่ม ♫ เพื่อปิด/เปิดเสียง เกมจำการปิดเสียงไว้ ในตั้งค่าปรับดนตรีกับเอฟเฟกต์แยกกัน และกด “ทดสอบเสียง” เพื่อฟังฝีเท้า กระเป๋า และความทรงจำ ตัวเลื่อนปรับเสียงทันที กดบันทึกเพื่อใช้ระดับนี้ครั้งต่อไป เสียงไม่จำเป็นต่อการแก้ปริศนา
+
 ## English shortcuts
 
 WASD/arrows: walk. Hold Shift: run. C: crouch/stand. E: interact nearby. Drag: orbit the camera. Wheel: zoom. R: reset camera. I/B/Tab: bag. M: map. Escape: close the top window. On touchscreens, hold an arrow and Run together; tap Crouch to toggle stance.
 
 Walk directly on stairs to change floors. The bag contains case notes, evidence, time, floor plan, hints, settings and save controls. Opening a window clears held movement and temporarily pauses NPC routines; closing restores the player's previous pause preference. Crouch persists. In memories, use the moment controls and open the bag to read or solve observations. Tab remains normal focus navigation inside windows; editable fields retain normal typing.
+
+Sound begins after the first player gesture. Use ♫ inside the bag to toggle all audio; mute persists. Settings separates Music and Effects and includes Test sounds for footsteps, the bag and memory transitions. Sliders apply immediately; save to keep the levels. All puzzles remain playable without sound.
