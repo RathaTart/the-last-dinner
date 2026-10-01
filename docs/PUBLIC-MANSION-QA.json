@@ -1,0 +1,66 @@
+{
+  "date": "2026-10-01T10:17:07.642Z",
+  "version": "1.0.0-rc.5",
+  "url": "https://d3imrhbpvqr1t2.cloudfront.net",
+  "release": "rc5-2026-10-01T10-10-07-515Z",
+  "lambdaVersion": "13",
+  "automatedTests": 46,
+  "publicHttpChecks": 32,
+  "publicHttpPass": true,
+  "localUi": {
+    "checkpoints": "Generated fixture saves imported through the supported game UI; some evidence/trust was supplied for targeted checks.",
+    "verified": [
+      "Actual foyer→grand hall→dining doorway traversal",
+      "E grand hall→upper landing→grand hall",
+      "E kitchen→cellar passage→kitchen",
+      "Lin memory upstairs→music room; return restores present state",
+      "Locked archive panel, incorrect 231 retry, correct 312",
+      "Actual movement through the opened boiler panel",
+      "Approached and recorded original archive file, reaching 14/14",
+      "Mouse orbit, camera reset and keyboard/touch controls",
+      "Other rooms dark and only occupied floor rendered"
+    ]
+  },
+  "publicUi": {
+    "verified": [
+      "All four intro shots and skip path",
+      "Settings version rc.5 and previous-story export present",
+      "Three selectable floor plans; unrevealed sealed room omitted",
+      "Keyboard WASD and held touch traversal dining→grand hall",
+      "High→low→high graphics mode without console errors",
+      "Fresh case begins in foyer with 0/14",
+      "Desktop 1248×704 and mobile 390×844 plus narrow 304×923 layout"
+    ],
+    "desktopOverflow": {
+      "clientWidth": 1248,
+      "scrollWidth": 1248
+    },
+    "narrowOverflow": {
+      "clientWidth": 289,
+      "scrollWidth": 289
+    },
+    "normalPanelOverflow": {
+      "clientWidth": 304,
+      "scrollWidth": 304
+    },
+    "consoleErrors": [],
+    "finalState": {
+      "room": "foyer",
+      "evidence": 0,
+      "playerX": 0,
+      "playerZ": 8.1,
+      "walking": false,
+      "quality": "high"
+    },
+    "screenshot": "screenshots/mansion-upgrade.png"
+  },
+  "lambdaErrors": {
+    "windowMinutes": 20,
+    "availableDatapoints": 3,
+    "sum": 0
+  },
+  "limitations": [
+    "Viewport QA is not physical-device performance certification.",
+    "Independent player tests, bespoke characters/voice and cinematic endings remain future production work."
+  ]
+}

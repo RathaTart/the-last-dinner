@@ -1,14 +1,14 @@
 import {CASE_ID,floors,rooms,people,clues,EVIDENCE_TOTAL,memoryScenes,memoryPuzzles,timelineEvents,preparations,endings,hints} from './content.js';
 export {CASE_ID,floors,rooms,people,clues,EVIDENCE_TOTAL,memoryScenes,memoryPuzzles,timelineEvents,preparations,endings,hints};
-export const VERSION='1.0.0-rc.4';
+export const VERSION='1.0.0-rc.5';
 export function simulationDelta(now,last){return Number.isFinite(now)&&Number.isFinite(last)?Math.max(0,Math.min((now-last)/1000,.04)):0;}
 const mapPeople=value=>Object.fromEntries(Object.keys(people).map(id=>[id,typeof value==='function'?value():value]));
-export function freshState(){return {version:3,caseId:CASE_ID,started:false,introSeen:false,room:'dining',secretOpen:false,evidence:[],trust:mapPeople(0),observations:mapPeople(false),reconstructed:false,resolved:false,preparations:[],ending:null,conversations:mapPeople(()=>[]),hintLevel:0};}
+export function freshState(){return {version:3,caseId:CASE_ID,started:false,introSeen:false,room:'foyer',secretOpen:false,evidence:[],trust:mapPeople(0),observations:mapPeople(false),reconstructed:false,resolved:false,preparations:[],ending:null,conversations:mapPeople(()=>[]),hintLevel:0};}
 export function restoreState(raw){
  const s=freshState();if(!raw||raw.version!==3||raw.caseId!==CASE_ID)return s;
  s.started=raw.started===true;s.introSeen=raw.introSeen===true;s.evidence=Array.isArray(raw.evidence)?[...new Set(raw.evidence.filter(k=>Object.hasOwn(clues,k)))]:[];
  s.secretOpen=raw.secretOpen===true&&canUnlockSecret(s);if(!s.secretOpen)s.evidence=s.evidence.filter(k=>!clues[k].requiresSecret);
- s.room=Object.hasOwn(rooms,raw.room)&&(raw.room!=='sealed'||s.secretOpen)?raw.room:'dining';
+ s.room=Object.hasOwn(rooms,raw.room)&&(raw.room!=='sealed'||s.secretOpen)?raw.room:'foyer';
  for(const p of Object.keys(people)){s.trust[p]=Math.max(0,Math.min(2,Number(raw.trust?.[p])||0));s.observations[p]=raw.observations?.[p]===true||s.evidence.includes(memoryScenes[p][1].clue);s.conversations[p]=Array.isArray(raw.conversations?.[p])?raw.conversations[p].filter(m=>m&&['user','assistant'].includes(m.role)&&typeof m.text==='string').slice(-12).map(m=>({role:m.role,text:m.text.slice(0,1500)})):[];}
  s.reconstructed=s.evidence.length===EVIDENCE_TOTAL&&raw.reconstructed===true;s.resolved=s.reconstructed&&raw.resolved===true;s.preparations=s.resolved&&Array.isArray(raw.preparations)?[...new Set(raw.preparations.filter(id=>Object.hasOwn(preparations,id)))]:[];s.ending=canChooseEnding(s,raw.ending)?raw.ending:null;s.hintLevel=Math.max(0,Math.min(3,Number(raw.hintLevel)||0));return s;
 }

@@ -1,10 +1,10 @@
 # The Last Dinner — บ้านที่จำได้
 
-A bilingual horror mystery in a theatrical cutaway house. Investigate a concealed mass murder across **three floors, ten rooms and six residents**. Compare fourteen clues with six partial memories, open a hidden chamber, reconstruct eight events, and choose whether truth leaves the house with its survivor protected.
+A bilingual horror mystery in a theatrical cutaway mansion. Investigate a concealed mass murder across **three floors, fourteen rooms and six residents**. Compare fourteen clues with six partial memories, open a hidden chamber, reconstruct eight events, and choose whether truth leaves the house with its survivor protected.
 
 **Play:** https://d3imrhbpvqr1t2.cloudfront.net
 
-Version **1.0.0-rc.4** replaces the original family case with *The slaughter beneath the bell*. It retains rc.3's continuous camera-relative keyboard movement, mouse orbit, room darkness and touch controls. Read the [storyboard](docs/STORYBOARD.md), [canon with spoilers](docs/STORY-BIBLE.md), and [release checks](docs/RELEASE-rc4.md). The original case is archived in [STORY-BIBLE-rc3.md](docs/STORY-BIBLE-rc3.md).
+Version **1.0.0-rc.5** gives *The slaughter beneath the bell* a larger architectural layout: an approximately **24 × 19 metre estate**, with a foyer, central hall, upstairs landing and cellar corridor. Rooms connect through actual door openings rather than a single crossing between quadrants. Furniture placement, visible walls, clue anchors and collision come from one layout file. The mansion uses more detailed procedural furnishings and local CC0 material maps; the cast remains stylized. It retains continuous camera-relative keyboard movement, mouse orbit, room darkness and touch controls. Read the [mansion design](docs/MANSION-DESIGN.md), [storyboard](docs/STORYBOARD.md), and [canon with spoilers](docs/STORY-BIBLE.md). The original case is archived in [STORY-BIBLE-rc3.md](docs/STORY-BIBLE-rc3.md).
 
 ## Run and verify
 
@@ -33,7 +33,7 @@ Drag either mouse button to rotate the camera; scroll to zoom; **R** restores th
 
 Approach the dining clock, kitchen ledger and piano book. Show each object to a nearby resident to open their memory. Each memory has three moments; the second requires an observation puzzle before its evidence becomes available. Correct the clock, inspect the payer field, and move Lamai's point of listening. Memories are staged observation scenes; movement resumes in the present. Use a movement key, Escape or Back to leave a conversation/evidence panel. Text fields and modal windows suppress walking; after leaving a modal or switching windows, press movement again. Pausing time freezes NPC routines while still allowing the investigator to walk.
 
-Use E at central stairs to reach the gallery above or mortuary below. Inspect the register, marked photograph, door service log and entry names. Each resident has an object and observation puzzle. Corroborate Somchai and Nara, then enter code 312 to open the hidden wall. Once all fourteen clues are collected, reconstruct eight events and conclude. Secure an admission, preserve originals and protect the survivor for the fullest ending; other choices leave justice unfinished or bury the file. Wrong answers are recoverable. The `?` button provides three hint levels; the final level asks before revealing answers.
+Enter through the foyer. The central hall connects the dining room, kitchen, clock workshop and music room. Use E at the grand staircase in the hall to reach the upstairs landing; the service staircase in the kitchen leads to the cellar corridor. Inspect the register, marked photograph, door service log and entry names. Each resident has an object and observation puzzle. Corroborate Somchai and Nara, then enter code 312 at the boiler room's hidden panel. The sealed room has no doorway from the cellar corridor. Once all fourteen clues are collected, reconstruct eight events and conclude. Secure an admission, preserve originals and protect the survivor for the fullest ending; other choices leave justice unfinished or bury the file. Wrong answers are recoverable. The `?` button provides three hint levels; the final level asks before revealing answers.
 
 Progress and conversations are saved in this browser. This case uses schema 3 and a new storage key; the original case save is untouched and can be exported in Settings. Old-case save files cannot be imported into this incompatible story. Settings support low graphics, reduced motion, separate music/effects levels, and save files. Changing languages changes the interface; existing conversation records retain the language in which they were spoken.
 
@@ -56,11 +56,11 @@ AWS deployment is scoped to account `541099637009`, profile `codex-tart`, region
 | File | Responsibility |
 |---|---|
 | `content.js`, `game.js` | Story, evidence, timeline, progression and save validation |
-| `scene.js`, `house-expansion.js`, `audio.js` | Three.js house, animation, memory staging and WebAudio |
-| `navigation.js` | Camera-relative movement, collision footprints, room membership and interaction range |
+| `scene.js`, `mansion-environment.js`, `audio.js` | Three.js mansion, materials, animation, memory staging and WebAudio |
+| `mansion-layout.js`, `navigation.js` | Shared room bounds, door graph, furnishings, clue anchors, spawns, collision and movement |
 | `app.js` | Interface, dialogue, notebook, settings and saves |
 | `dialogue.mjs`, `dialogue-acts.mjs`, `backend.mjs` | Model context, reviewed Thai acts, fallback, session and quotas |
 | `bedrock.mjs`, `lambda.mjs`, `server.mjs` | Cloud provider and cloud/local HTTP adapters |
 | `tools/` | Build, infrastructure, deployment, rollback and live evaluations |
 
-Story, interface, house geometry and synthesized audio were made for this game. Kenney character/furniture assets are CC0; self-hosted fonts use the SIL OFL and Three.js uses MIT. See [asset register](docs/ASSETS.md), the machine-readable manifest and included license texts. No commercial game's artwork, music or code is included. The added floors, medical props and mortuary are original procedural geometry; characters reuse stylized licensed bases.
+Story, interface, house geometry and synthesized audio were made for this game. Kenney character/furniture assets and the downloaded Poly Haven material maps are CC0; self-hosted fonts use the SIL OFL and Three.js uses MIT. See [asset register](docs/ASSETS.md), the machine-readable manifest and included license texts. No commercial game's artwork, music or code is included. The mansion architecture and furnishings are procedural geometry; characters reuse stylized licensed bases. Bespoke character art, a Blender export pipeline, recorded dialogue and broader device/play testing remain production work beyond this release.

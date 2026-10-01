@@ -1,0 +1,5 @@
+Poly Haven texture assets: wood_floor, beige_wall_001, stone_wall_02
+Source: https://polyhaven.com
+License: Creative Commons CC0 1.0 Universal
+https://creativecommons.org/publicdomain/zero/1.0/
+Asset authors and exact shipped maps are recorded in docs/ASSETS.md.

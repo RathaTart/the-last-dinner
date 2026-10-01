@@ -1,6 +1,7 @@
+import {roomLayouts,floorY,evidencePositions} from './mansion-layout.js';
 const bi=(th,en)=>({th,en});
 export const CASE_ID='hollow-bell';
-export const floors={ground:{...bi('ชั้นล่าง','Ground floor'),y:0},upper:{...bi('ชั้นสอง','Second floor'),y:4.2},basement:{...bi('ห้องใต้ดิน','Basement'),y:-4.2}};
+export const floors={ground:{...bi('ชั้นล่าง','Ground floor'),y:floorY.ground},upper:{...bi('ชั้นสอง','Second floor'),y:floorY.upper},basement:{...bi('ห้องใต้ดิน','Basement'),y:floorY.basement}};
 const room=(th,en,floor,pos,description,size=[5.95,4.7])=>({...bi(th,en),floor,pos,size,description});
 export const rooms={
  dining:room('ห้องอาหาร','Dining room','ground',[-2.9,2.35],bi('โต๊ะยังจัดเหมือนคืนสุดท้าย จานใบที่สิบสองแตกอยู่ใต้เก้าอี้ นาฬิกาบอกเวลาไม่ตรงกัน','The last dinner is still set. The twelfth plate lies broken. The clocks disagree.')),
@@ -14,6 +15,13 @@ export const rooms={
  boiler:room('ห้องเตาและประตูเหล็ก','Boiler and iron door','basement',[2.9,-2.35],bi('สมชายบอกว่าปิดประตูเพื่อความปลอดภัย แต่รอยคานอยู่ด้านนอก','Somchai calls the closed door a precaution. Its bar marks are outside.')),
  sealed:room('ห้องลับหลังผนัง','The sealed room','basement',[2.9,2.35],bi('ห้องที่หายจากแปลน ทางลอด แฟ้มต้นฉบับ และคำสั่งที่ไม่ควรรอด','Absent from the plans: a crawl passage, originals, an order that should not have survived.'))
 };
+Object.assign(rooms,{
+ foyer:room('โถงรับแขก','Entrance foyer','ground',[0,0],bi('ประตูใหญ่เปิดสู่พื้นหินอ่อน ร่มเปียกและจดหมายรออยู่ข้างกระจก จากที่นี่ทางตรงนำสู่โถงบันได','Marble beneath the front doors. A wet umbrella and a letter beside the mirror. Ahead lies the stair hall.')),
+ grandHall:room('โถงบันไดใหญ่','Grand stair hall','ground',[0,0],bi('โถงกลางเชื่อมปีกห้องอาหารกับห้องดนตรี ด้านหลังเป็นครัวและห้องนาฬิกา บันไดใหญ่ขึ้นชั้นสอง','The central hall connects dining and music wings. Kitchen and clock workshop lie behind; the grand staircase leads upstairs.')),
+ landing:room('ชานบันไดชั้นสอง','Upper landing','upper',[0,0],bi('ราวไม้โอบช่องบันได ทางเดินไปห้องพักแขก ห้องพยาบาล และโถงภาพเหมือน เสียงจากด้านล่างลอดขึ้นมา','Carved rails around the stairwell. A corridor to the guest bedroom, infirmary and portrait gallery. Sound rises from below.')),
+ cellarHall:room('ทางเดินใต้ดิน','Cellar passage','basement',[0,0],bi('บันไดคนรับใช้ลงจากครัว แยกไปห้องเก็บศพและห้องเตา ไม่มีประตูสู่ห้องที่หายไปจากแปลน','Service stairs descend from the kitchen. The passage serves the mortuary and boiler. No door leads to the room missing from the plans.'))
+});
+for(const [id,layout]of Object.entries(roomLayouts))Object.assign(rooms[id],layout);
 const person=(th,en,role,color,initial,room,required,memoryRoom,memoryTitle,answer,base,reply,revealed)=>({...bi(th,en),role,color,initial,room,required,memoryRoom,memoryTitle,answer,base,reply,revealed,routine:bi('ตรวจสิ่งของ · ฟังเสียงบ้าน · กลับไปทำงาน','Checks objects · listens to the house · returns to work')});
 export const people={
  father:person('พ่อ · อรุณ','Arun · Father',bi('เจ้าของบ้านและช่างนาฬิกา','Owner and clockmaker'),'#b78a65','A','workshop','clock','dining',bi('ข้อแก้ตัวแปดครั้ง','Eight chimes, one alibi'),'19:00','Arun owns the house. Mira is his missing daughter. He remembers eight chimes and claims the cellar closure was a precaution.',bi('ผมได้ยินแปดครั้ง หมอบอกอย่าเปิดประตู อ่านป้ายหลังนาฬิกาก่อนเชื่อเวลาที่ผมจำ','Eight chimes. The doctor said not to open the door. Read the repair tag before trusting my time.'),bi('ผมปิดประตูตอน 19:05 ตามคำสั่งหมอ มีราขอให้เปิด ผมเชื่อเขาแทนลูกสาว','I closed the door at 19:05 on the doctor’s instruction. Mira asked me to open it. I believed him instead.')),
@@ -43,6 +51,7 @@ export const clues={
 };
 export const EVIDENCE_TOTAL=Object.keys(clues).length;
 const m=(time,room,th,en,clue)=>({time,room,...bi(th,en),...(clue?{clue}:{})});
+for(const [id,pos]of Object.entries(evidencePositions))clues[id].pos=pos;
 export const memoryScenes={
  father:[m('20:00?','dining','แปดครั้ง แต่สมุดครัวบอกหนึ่งทุ่ม ความจำไม่ใช่นาฬิกา','Eight chimes, but the ledger says seven. Memory is not a clock.'),m('19:05','dining','แก้เวลา แล้วฟังว่าใครสั่งปิดประตู','Correct the time. Hear who ordered the door shut.','argument'),m('19:10','workshop','อรุณกลับไปทำงาน เสียงร้องกลายเป็นเสียงเคาะในความจำ','Arun returned to work. Voices became knocks in his memory.')],
  sister:[m('18:40','infirmary','ซองถูกส่งมาโดยห้ามเปิด สีขวดไม่พิสูจน์ผู้สั่ง','A sealed envelope. Bottle colour cannot identify its author.'),m('18:45','infirmary','อ่านชื่อผู้สั่ง ไม่ใช่คนถือซอง','Read the ordering name, not the carrier’s.','receipt'),m('18:55','library','ลินส่งซองให้มีราแล้วซ่อนคำเตือน','Lin passed it to Mira, then hid her warning.')],
@@ -80,7 +89,7 @@ export const endings={
  distance:{title:bi('อาหารค่ำครั้งต่อไป','The next dinner'),text:bi('คุณปิดแฟ้มแล้วปล่อยให้ผู้มีอำนาจจัดการ ศรัณย์เก็บทะเบียน บ้านขายโดยไม่มีใครค้นหลักฐานหลังผนัง ผู้ซื้อคนใหม่มาถึง โต๊ะมีจานเพิ่มอีกใบ ขณะคุณออกไป เสียงเคาะเริ่มใหม่','You close the file and defer to those in charge. Saran keeps his register. The archive stays buried when the house sells. Its buyer arrives. An extra plate waits. The knocks begin again.'),quote:bi('บ้านไม่ได้ลืม มันรอคนที่ยอมเปิดประตู','The house did not forget. It waits for someone to open the door.')}
 };
 export const hints=[
- bi('เริ่มนาฬิกา สมุดครัว จดหมาย แล้วนำให้เจ้าของดู บันไดช่องกลาง: ฝั่งห้องดนตรีขึ้นชั้นสอง ฝั่งห้องอาหารลงใต้ดิน','Find clock, ledger and letter; show their owners. Central stairs: music-room side up, dining-room side down.'),
+ bi('เริ่มนาฬิกา สมุดครัว จดหมาย แล้วนำให้เจ้าของดู บันไดใหญ่ในโถงกลางขึ้นชั้นสอง บันไดคนรับใช้ด้านหลังครัวลงใต้ดิน','Find clock, ledger and letter; show their owners. Grand hall stairs lead upstairs; kitchen service stairs lead to the cellar.'),
  bi('ชั้นสองมีทะเบียนหมอกับภาพนารา ใต้ดินมีสมุดสมชาย แก้ช่วงที่สองทุกความทรงจำ เทียบคำให้การสมชายกับนาราก่อนเปิดผนังลับ','Upstairs: doctor’s register, Nara’s photograph. Below: Somchai’s log. Solve every second memory moment. Corroborate Somchai and Nara to open the panel.'),
  bi('คำตอบ: 19:00, ชื่อผู้สั่ง, บันได, ลายเซ็น, ด้านนอก, 312 รหัสผนัง 312 ข้อสรุป: ศรัณย์สั่ง / ฆาตกรรมปกปิด / มีรากลับไปช่วย เรียงเวลาตามหลักฐาน','Answers: 19:00, ordering name, stairs, signature, outside, 312. Panel: 312. Saran ordered it; murder to conceal wrongdoing; Mira returned to help. Use evidence times.')
 ];

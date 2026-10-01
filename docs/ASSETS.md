@@ -16,3 +16,14 @@ All runtime assets are self-hosted. No AI-generated raster images are used in th
 Original third-party license texts are included under `assets/licenses/` and served with the game. Attribution to Kenney is included even though CC0 does not require it. Fonts are distributed unmodified with their original licenses. The commercial reference *The Sexy Brutale* informs the cutaway theatrical atmosphere; none of its assets are used.
 
 rc.4 adds original procedural second-floor and basement scenery in `house-expansion.js`. Three additional residents reuse existing character bases with tint variations. No new paid assets or AI-generated images were acquired.
+
+
+rc.5 replaces the active house renderer with original modular geometry in `mansion-environment.js` and a shared `mansion-layout.js` blueprint. Three 1K PBR material sets were downloaded and self-hosted from [Poly Haven](https://polyhaven.com), licensed [CC0](https://polyhaven.com/license):
+
+| Surface | Asset / author | Included maps | Download bytes |
+|---|---|---|---:|
+| Wood | [Wood Floor](https://polyhaven.com/a/wood_floor) / Dimitrios Savva | Diffuse, OpenGL normal, roughness | 1,685,550 |
+| Plaster | [Beige Wall 001](https://polyhaven.com/a/beige_wall_001) / Dimitrios Savva, Rico Cilliers | Diffuse, OpenGL normal, roughness | 337,764 |
+| Stone | [Stone Wall 02](https://polyhaven.com/a/stone_wall_02) / Charlotte Baglioni, Dario Barresi | Diffuse, OpenGL normal, roughness | 1,867,936 |
+
+Source URL: `https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/{id}/{id}_{diff,nor_gl,rough}_1k.jpg`. Nine maps total 3,891,250 bytes. Base color is sRGB; normal and roughness are linear. No displacement, paid pack, Blender install, or runtime third-party texture request is required. Visible Poly Haven credit is included in the game. These materials improve the stylized architecture; the current character models remain prototype assets.

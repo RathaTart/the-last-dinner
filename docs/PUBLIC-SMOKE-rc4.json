@@ -1,11 +1,11 @@
 {
-  "date": "2026-10-01T10:11:30.403Z",
+  "date": "2026-10-01T09:09:46.427Z",
   "url": "https://d3imrhbpvqr1t2.cloudfront.net",
-  "release": "rc5-2026-10-01T10-10-07-515Z",
+  "release": "rc4-2026-10-01T09-08-43-673Z",
   "status": {
     "dialogue": "llm",
     "provider": "Amazon Bedrock",
-    "version": "1.0.0-rc.5"
+    "version": "1.0.0-rc.4"
   },
   "checks": [
     {
@@ -19,7 +19,7 @@
       "pass": true
     },
     {
-      "path": "/app.js?v=86413766dfbce335",
+      "path": "/app.js?v=6c0f84c6077bd2e0",
       "status": 200,
       "expected": 200,
       "pass": true
@@ -47,28 +47,6 @@
       "pass": true
     },
     {
-      "path": "/assets/textures/wood_floor_diff_1k.jpg",
-      "status": 200,
-      "expected": 200,
-      "pass": true
-    },
-    {
-      "path": "/assets/textures/beige_wall_001_diff_1k.jpg",
-      "status": 200,
-      "expected": 200,
-      "pass": true
-    },
-    {
-      "path": "/assets/textures/stone_wall_02_diff_1k.jpg",
-      "status": 200,
-      "expected": 200,
-      "pass": true
-    },
-    {
-      "name": "mansion floor-plan control",
-      "pass": true
-    },
-    {
       "path": "/api/health",
       "status": 200,
       "expected": 200,
@@ -82,8 +60,8 @@
     },
     {
       "name": "deployed API release version",
-      "expected": "1.0.0-rc.5",
-      "actual": "1.0.0-rc.5",
+      "expected": "1.0.0-rc.4",
+      "actual": "1.0.0-rc.4",
       "pass": true
     },
     {

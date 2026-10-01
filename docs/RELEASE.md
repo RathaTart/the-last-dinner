@@ -1,3 +1,5 @@
+Current release: [1.0.0-rc.5 mansion redesign](RELEASE-rc5.md). Earlier release notes follow below.
+
 # Release candidate 1.0.0-rc.1
 
 Historical release evidence. The current investigator-controls update is documented in [RELEASE-rc2.md](RELEASE-rc2.md); its preceding HTTP report is preserved in `PUBLIC-SMOKE-rc1.json`.

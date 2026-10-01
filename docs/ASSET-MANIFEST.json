@@ -1,26 +1,6 @@
 {
-  "generated": "2026-09-30T21:07:34.936Z",
+  "generated": "2026-10-01T09:53:58.453Z",
   "files": [
-    {
-      "file": "assets/characters/Textures/texture-a.png",
-      "bytes": 20171,
-      "sha256": "257e944c582ce7cda206fbd8ceb717be648f9721756baf377a36478c11c0059a"
-    },
-    {
-      "file": "assets/characters/Textures/texture-b.png",
-      "bytes": 15606,
-      "sha256": "c614148428fbf63ab701ab95e2ebe0b6103ea0e2e6212c986d8931899bad7692"
-    },
-    {
-      "file": "assets/characters/Textures/texture-e.png",
-      "bytes": 14509,
-      "sha256": "6bbdb4f76b8d2ba7feb1ad8e4a341ca87afd655a4f061c77a86c400ad3125049"
-    },
-    {
-      "file": "assets/characters/Textures/texture-i.png",
-      "bytes": 14496,
-      "sha256": "2c721b0a8837836ab0bf0eb0de12ca14e5d518ccba7420b8c673ed4600dc6b63"
-    },
     {
       "file": "assets/characters/character-a.glb",
       "bytes": 113596,
@@ -40,6 +20,26 @@
       "file": "assets/characters/character-i.glb",
       "bytes": 113532,
       "sha256": "2b566d3b6261faa3e151b352396d823a285834f039ff6476db248ec6da902fe8"
+    },
+    {
+      "file": "assets/characters/Textures/texture-a.png",
+      "bytes": 20171,
+      "sha256": "257e944c582ce7cda206fbd8ceb717be648f9721756baf377a36478c11c0059a"
+    },
+    {
+      "file": "assets/characters/Textures/texture-b.png",
+      "bytes": 15606,
+      "sha256": "c614148428fbf63ab701ab95e2ebe0b6103ea0e2e6212c986d8931899bad7692"
+    },
+    {
+      "file": "assets/characters/Textures/texture-e.png",
+      "bytes": 14509,
+      "sha256": "6bbdb4f76b8d2ba7feb1ad8e4a341ca87afd655a4f061c77a86c400ad3125049"
+    },
+    {
+      "file": "assets/characters/Textures/texture-i.png",
+      "bytes": 14496,
+      "sha256": "2c721b0a8837836ab0bf0eb0de12ca14e5d518ccba7420b8c673ed4600dc6b63"
     },
     {
       "file": "assets/fonts/dm-sans.ttf",
@@ -112,9 +112,59 @@
       "sha256": "566be814f8e96e93dfa16101331557eb6b5467e9e03f627c0910fe93ca12300e"
     },
     {
+      "file": "assets/licenses/polyhaven.txt",
+      "bytes": 268,
+      "sha256": "3cf424a9100b4a28f6c302ca97323b988503d01bebb4a1a7fb320fe57db70d7c"
+    },
+    {
       "file": "assets/licenses/three.txt",
       "bytes": 1081,
       "sha256": "bfe119ea4fd413f5f7ca3fcd63adb0c4a073ed39daa2fe7d3e6b769e21272601"
+    },
+    {
+      "file": "assets/textures/beige_wall_001_diff_1k.jpg",
+      "bytes": 33074,
+      "sha256": "72104704d0b9bd3713c5f6238971252b63eccf6e61263059c674caa8f3d0fa6d"
+    },
+    {
+      "file": "assets/textures/beige_wall_001_nor_gl_1k.jpg",
+      "bytes": 153434,
+      "sha256": "cec747be50f91da0693986080b6f59ef868d53cb2ab7d577982165ece63ed75e"
+    },
+    {
+      "file": "assets/textures/beige_wall_001_rough_1k.jpg",
+      "bytes": 151256,
+      "sha256": "fc8328f47f4d2d82d5311a75bcb5c8cd8979d171a0ee097ad9e44ca9c5a00d60"
+    },
+    {
+      "file": "assets/textures/stone_wall_02_diff_1k.jpg",
+      "bytes": 621925,
+      "sha256": "546c51130575b57db1c9690766c55df19e80bf122bd3630f25f82f2832998fa8"
+    },
+    {
+      "file": "assets/textures/stone_wall_02_nor_gl_1k.jpg",
+      "bytes": 981733,
+      "sha256": "47c4ee16834a755da49feafe920161db2fd5147be97dd9d24f3b659d9b462c1e"
+    },
+    {
+      "file": "assets/textures/stone_wall_02_rough_1k.jpg",
+      "bytes": 264278,
+      "sha256": "b857cb67f7dd2c439f8e6d31ef3e279fa18ae2cec66b320382d03a83593178e5"
+    },
+    {
+      "file": "assets/textures/wood_floor_diff_1k.jpg",
+      "bytes": 734493,
+      "sha256": "2a1c07687b6dbb214c4b9213739c6d92d425f1f0fc8ab3ac157f105d78240789"
+    },
+    {
+      "file": "assets/textures/wood_floor_nor_gl_1k.jpg",
+      "bytes": 423303,
+      "sha256": "452247f0d0d1b7fc7f8324ff3b6ed60bcc6de1405f4284eeb8d9bce90d4939c2"
+    },
+    {
+      "file": "assets/textures/wood_floor_rough_1k.jpg",
+      "bytes": 527754,
+      "sha256": "061f1e1293251b2d28c76e3fac1ea9452b0e8648bb8f9b3728e09db386166e5c"
     }
   ]
 }
