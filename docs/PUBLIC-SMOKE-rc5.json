@@ -1,11 +1,11 @@
 {
-  "date": "2026-10-01T10:56:46.491Z",
+  "date": "2026-10-01T10:11:30.403Z",
   "url": "https://d3imrhbpvqr1t2.cloudfront.net",
-  "release": "rc6-2026-10-01T10-55-07-301Z",
+  "release": "rc5-2026-10-01T10-10-07-515Z",
   "status": {
     "dialogue": "llm",
     "provider": "Amazon Bedrock",
-    "version": "1.0.0-rc.6"
+    "version": "1.0.0-rc.5"
   },
   "checks": [
     {
@@ -19,7 +19,7 @@
       "pass": true
     },
     {
-      "path": "/app.js?v=f741aa2f099e023d",
+      "path": "/app.js?v=86413766dfbce335",
       "status": 200,
       "expected": 200,
       "pass": true
@@ -69,18 +69,6 @@
       "pass": true
     },
     {
-      "name": "investigator bag contains time, evidence and settings",
-      "pass": true
-    },
-    {
-      "name": "minimal play screen has bag and stance controls",
-      "pass": true
-    },
-    {
-      "name": "continuous staircase guidance",
-      "pass": true
-    },
-    {
       "path": "/api/health",
       "status": 200,
       "expected": 200,
@@ -94,8 +82,8 @@
     },
     {
       "name": "deployed API release version",
-      "expected": "1.0.0-rc.6",
-      "actual": "1.0.0-rc.6",
+      "expected": "1.0.0-rc.5",
+      "actual": "1.0.0-rc.5",
       "pass": true
     },
     {

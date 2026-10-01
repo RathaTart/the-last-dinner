@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createMovementInput,bindKeyboardMovement} from '../movement-input.js';
 import {moveInvestigator,cameraMovement,WALK_SPEED} from '../navigation.js';
-import {createLocomotionBlend,turnToward} from '../locomotion.js';
+import {createLocomotionBlend,turnToward,createCrouchPose} from '../locomotion.js';
 import {AnimationMixer,AnimationClip,NumberKeyframeTrack,Group,Object3D} from 'three';
 
 function rig(){let now=0;const input=createMovementInput(()=>now),keyboard=new EventTarget(),window=new EventTarget();let allowed=true,intents=0,position={x:.5,z:.5};
@@ -58,4 +58,29 @@ test('rapid walk/idle changes retain animation phase and blend back to a neutral
 test('a short direction tap finishes turning after release via the shortest angle',()=>{
  let angle=Math.PI;const target=-2.5;for(let i=0;i<30;i++)angle=turnToward(angle,target,1/60);assert.ok(Math.abs(Math.atan2(Math.sin(target-angle),Math.cos(target-angle)))<.001);
  assert.ok(turnToward(Math.PI-.01,-Math.PI+.01,1/60)>Math.PI-.01);
+});
+
+test('run and crouch changes preserve exact event durations and crouch toggles once per press',()=>{
+ const r=rig();r.key('keydown','KeyW');r.time(10);r.key('keydown','ShiftLeft');r.time(30);r.key('keyup','ShiftLeft');r.time(40);r.key('keydown','KeyC');r.key('keydown','KeyC',true);r.time(60);
+ const parts=r.input.read();assert.deepEqual(parts.map(p=>[p.dt,p.run,p.crouch]),[[.01,false,false],[.02,true,false],[.01,false,false],[.02,false,true]]);
+ assert.deepEqual(r.input.actions(),{run:false,crouch:true});r.key('keyup','KeyC');r.key('keydown','KeyC');assert.equal(r.input.actions().crouch,false);
+});
+test('both Shift keys and touch run release independently, and blur cannot leave sprint held',()=>{
+ const r=rig();r.key('keydown','ShiftLeft');r.key('keydown','ShiftRight');r.key('keyup','ShiftLeft');assert.equal(r.input.actions().run,true);
+ r.input.set('ShiftLeft','touch-run',true);r.key('keyup','ShiftRight');assert.equal(r.input.actions().run,true);r.input.releaseSource('touch-run');assert.equal(r.input.actions().run,false);
+ r.key('keydown','ShiftLeft');r.key('keydown','KeyC');r.window.dispatchEvent(new Event('blur'));assert.deepEqual(r.input.actions(),{run:false,crouch:true});r.key('keydown','ShiftLeft',true);assert.equal(r.input.actions().run,false);
+ r.allowed=false;r.key('keydown','KeyC');assert.equal(r.input.actions().crouch,true);
+});
+test('sprint clips blend without restarting strides, and crouched pose restores without drift',()=>{
+ const root=new Group(),torso=new Object3D();torso.name='torso';torso.position.set(0,1,0);root.add(torso);const mixer=new AnimationMixer(root);
+ const actions=Object.fromEntries(['idle','walk','sprint'].map((name,i)=>[name,mixer.clipAction(new AnimationClip(name,1,[new NumberKeyframeTrack('torso.rotation[x]',[0,1],[i*.1,i*.1])]))]));
+ const blend=createLocomotionBlend(actions),pose=createCrouchPose([torso]);
+ for(let i=0;i<30;i++){pose.restore();blend(true,1/60,'run');mixer.update(1/60);pose.apply(1);assert.ok(Math.abs(torso.position.y-.45)<1e-9);}
+ assert.ok(actions.sprint.getEffectiveWeight()>.99);close(actions.sprint.time,.5);pose.restore();close(torso.position.y,1);
+ for(let i=0;i<60;i++){blend(true,1/60,'crouch');mixer.update(1/60);}close(actions.sprint.getEffectiveWeight(),0);close(actions.walk.getEffectiveTimeScale(),.52);
+});
+test('crouch lowers the torso once while attached head and arms inherit its posture',()=>{
+ const torso=new Object3D(),head=new Object3D(),arm=new Object3D();torso.name='torso';head.name='head';arm.name='arm-left';torso.position.y=.7;head.position.y=1.2;arm.position.set(.4,1.1,-.1);torso.add(head,arm);
+ const beforeHead=head.position.clone(),beforeArm=arm.position.clone(),pose=createCrouchPose([torso,head,arm]);pose.apply(1);
+ close(torso.position.y,.15);close(head.position.y,beforeHead.y);close(arm.position.y,beforeArm.y);pose.restore();assert.deepEqual(head.position,beforeHead);assert.deepEqual(arm.position,beforeArm);close(torso.position.y,.7);
 });

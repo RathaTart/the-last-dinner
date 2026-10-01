@@ -1,10 +1,10 @@
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
-import {MANSION_BOUNDS,roomLayouts,walls,doors,furniture,evidencePositions} from './mansion-layout.js';
+import {MANSION_BOUNDS,roomLayouts,walls,doors,furniture,evidencePositions,staircases} from './mansion-layout.js';
 
 // Original modular scenery. The same blueprint controls scenery and collision.
 // Small repeated pieces are merged by parent/material, rather than separate draw calls.
 export function buildMansion(THREE,floorGroups,fogMaterial){
- const textures={},materialCache=new Map(),geometryCache=new Map(),buckets=new Map(),occludingWalls=[],roomLights=[];
+ const textures={},materialCache=new Map(),geometryCache=new Map(),buckets=new Map(),occludingWalls=[],roomLights=[],stairGroups=[];
  const loader=new THREE.TextureLoader();
  for(const kind of ['wood_floor','beige_wall_001','stone_wall_02']){
   textures[kind]={};for(const type of ['diff','nor_gl','rough']){const t=loader.load('/assets/textures/'+kind+'_'+type+'_1k.jpg');t.wrapS=t.wrapT=THREE.RepeatWrapping;t.colorSpace=type==='diff'?THREE.SRGBColorSpace:THREE.NoColorSpace;t.anisotropy=4;textures[kind][type]=t;}
@@ -27,7 +27,8 @@ export function buildMansion(THREE,floorGroups,fogMaterial){
   ball:(r,x,y,z,m=mats.brass,sx=1,sy=1,sz=1)=>add(parent,sphereGeo,m,x,y,z,r*sx,r*sy,r*sz,0,0,0,base),
   cyl:(r,h,x,y,z,m=mats.brass,rx=0,ry=0,rz=0)=>add(parent,cylinderGeo,m,x,y,z,r,h,r,rx,ry,rz,base),
   ring:(r,x,y,z,m=mats.brass,rx=0,ry=0)=>add(parent,torusGeo,m,x,y,z,r,r,r,rx,ry,0,base),
-  diagonal:(w,h,d,x,y,z,m,rz=0)=>add(parent,boxGeo,m,x,y,z,w,h,d,0,h<.1?rz:0,h<.1?0:rz,base)
+  diagonal:(w,h,d,x,y,z,m,rz=0)=>add(parent,boxGeo,m,x,y,z,w,h,d,0,h<.1?rz:0,h<.1?0:rz,base),
+  beam:(a,b,r=.035,m=mats.darkWood)=>{const direction=new THREE.Vector3(b[0]-a[0],b[1]-a[1],b[2]-a[2]),length=direction.length(),rotation=new THREE.Euler().setFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,1,0),direction.normalize()));add(parent,cylinderGeo,m,(a[0]+b[0])/2,(a[1]+b[1])/2,(a[2]+b[2])/2,r,length,r,rotation.x,rotation.y,rotation.z,base);}
  };}
  function single(geo,mat,parent,x,y,z){const mesh=new THREE.Mesh(geo,mat);mesh.position.set(x,y,z);mesh.castShadow=true;mesh.receiveShadow=true;parent.add(mesh);return mesh;}
  const roomColors={foyer:'#667268',grandHall:'#46564e',dining:'#674b48',kitchen:'#71847a',workshop:'#646a65',library:'#4c6064',landing:'#615862',bedroom:'#77626a',infirmary:'#7e887e',gallery:'#485d5d',cellarHall:'#414947',mortuary:'#465953',boiler:'#565348',sealed:'#564b43'};
@@ -35,9 +36,9 @@ export function buildMansion(THREE,floorGroups,fogMaterial){
  for(const [id,r]of Object.entries(roomLayouts)){
   const c=context(floorGroups[r.floor]),basement=r.floor==='basement',stone=basement||id==='kitchen'||id==='foyer',floorMat=material(stone?'#909486':'#967f65',stone?'stone_wall_02':'wood_floor',[r.size[0]/2,r.size[1]/2]);
   if(id==='landing'){
-   floorPiece(c,0,1.85,5.6,15.3,floorMat);floorPiece(c,0,-9.35,5.6,.3,floorMat);for(const x of [-2.65,2.65])floorPiece(c,x,-7.6,.3,3.5,floorMat);
+   floorPiece(c,0,2,5.6,15,floorMat);floorPiece(c,0,-9.45,5.6,.1,floorMat);for(const x of [-2.675,2.675])floorPiece(c,x,-7.45,.25,3.9,floorMat);
   }else if(id==='kitchen'){
-   floorPiece(c,-8.3,-5.5,7.4,8,floorMat);floorPiece(c,-3.7,-4.6,1.8,6.2,floorMat);floorPiece(c,-3.7,-9.2,1.8,.6,floorMat);floorPiece(c,-2.95,-8.3,.3,1.2,floorMat);
+   floorPiece(c,-8.25,-5.5,7.5,8,floorMat);floorPiece(c,-3.65,-3.5,1.7,4,floorMat);floorPiece(c,-3.65,-9.425,1.7,.15,floorMat);floorPiece(c,-2.95,-7.425,.3,3.85,floorMat);
   }else floorPiece(c,r.pos[0],r.pos[1],r.size[0]-.03,r.size[1]-.03,floorMat);
   // The bevelled plinth is readable even when a camera-side wall is cut away.
   // Each floor-piece owns its plinth; both stair apertures remain truly open.
@@ -65,6 +66,7 @@ export function buildMansion(THREE,floorGroups,fogMaterial){
  }
  const arches=[];
  for(const d of doors){
+  if(d.stairOpening)continue; // This crossing is above the cellar floor; a normal header would hit a head.
   const group=new THREE.Group();group.position.set(d.pos[0],.1,d.pos[1]);group.rotation.y=d.axis==='z'?Math.PI/2:0;group.userData={floor:d.floor,axis:d.axis,x:d.pos[0],z:d.pos[1],width:d.axis==='x'?d.width:.22,depth:d.axis==='z'?d.width:.22,height:3.4,rooms:d.rooms,exterior:d.rooms.length===1,cutaway:true};floorGroups[d.floor].add(group);occludingWalls.push(group);arches.push(group);
   const c=context(group),stone=d.floor==='basement',m=stone?mats.stone:mats.trim;
   for(const x of [-d.width/2,d.width/2]){c.box(.16,2.75,.38,x,1.37,0,m,true);c.box(.25,.17,.47,x,.13,0,m);c.box(.23,.17,.46,x,2.75,0,m);}c.box(d.width+.25,.22,.38,0,2.88,0,m,true);c.box(d.width+.43,.1,.45,0,3.03,0,m);c.box(d.width+.3,.65,.22,0,3.37,0,material(stone?'#64736a':'#a29b89',stone?'stone_wall_02':'beige_wall_001',[1,.5]));
@@ -132,17 +134,55 @@ export function buildMansion(THREE,floorGroups,fogMaterial){
  }
  const entry=context(floorGroups.ground);paper(entry,-1.9,1.04,6.8,.4,.29);entry.box(.26,.035,.2,-1.9,1.06,8,mats.wine,true);entry.cyl(.025,1.15,1.98,.66,8.46,mats.black);entry.box(.19,.3,.055,1.98,.18,8.46,mats.darkWood,true);entry.ring(.085,1.98,1.28,8.46,mats.brass);
  for(const wallGroup of occludingWalls){const wall=wallGroup.userData;if(wall.floor==='ground'&&wall.axis==='z'&&Math.abs(wall.x+2.8)<.01&&7.4>wall.z-wall.depth/2&&7.4<wall.z+wall.depth/2){const c=context(wallGroup),x=wall.z-7.4;c.box(1.38,1.55,.08,x,2.03,.18,mats.brass,true);c.box(1.22,1.39,.035,x,2.03,.24,material('#89a0a1','',[1,1],.55));for(const dx of [-.69,.69])c.ball(.065,x+dx,2.82,.18,mats.brass);}}
- // The spatially aligned dogleg grand staircase and its upstairs opening.
- function stairFloor(floor,offset=0){const c=context(floorGroups[floor],0,0,0,offset+.1);for(let i=0;i<14;i++){
-   const z=-5.92-i*.225,y=(i+1)*2.2/14;c.box(2.05,.14,.25,-1.3,y,z,mats.wood);c.box(2.05,.16,.045,-1.3,y-.07,z+.115,mats.darkWood);
-   const z2=-8.95+i*.225,y2=2.2+(i+1)*2.2/14;c.box(2.05,.14,.25,1.3,y2,z2,mats.wood);c.box(2.05,.16,.045,1.3,y2-.07,z2-.115,mats.darkWood);
-   if(i%2===0)for(const [x,zz,yy]of [[-2.35,z,y],[-.25,z,y],[.25,z2,y2],[2.35,z2,y2]]){c.cyl(.028,.76,x,yy+.38,zz,mats.darkWood);c.ball(.047,x,yy+.76,zz,mats.brass);}
-  }c.box(4.7,.18,.55,0,2.2,-9.05,mats.wood);for(const x of [-2.35,2.35])c.box(.14,1.05,.14,x,.6,-5.62,mats.wood,true);
+ // Continuous stair geometry is shared by both floors. The renderer attaches
+ // these groups directly to the scene, avoiding duplicate treads while moving
+ // between floors. Every flight and turn comes from the navigation blueprint.
+ function guard(c,a,b,m=mats.darkWood){
+  c.beam([a[0],a[1]+.98,a[2]],[b[0],b[1]+.98,b[2]],.035,m);
+  const length=Math.hypot(b[0]-a[0],b[2]-a[2]),count=Math.max(1,Math.ceil(length/.42));
+  for(let i=0;i<=count;i++){const t=i/count,x=a[0]+(b[0]-a[0])*t,y=a[1]+(b[1]-a[1])*t,z=a[2]+(b[2]-a[2])*t;c.cyl(.025,.86,x,y+.48,z,m);c.ball(.04,x,y+.93,z,mats.brass);}
  }
- stairFloor('ground');stairFloor('upper',-4.4);
- const rail=context(floorGroups.upper);for(const x of [-2.5,2.5]){for(let i=0;i<9;i++)rail.cyl(.027,.85,x,.57,-9.25+i*.39,mats.darkWood);rail.box(.09,.08,3.55,x,1.03,-7.55,mats.wood,true);}for(const x of [-1.4,1.4])rail.box(2.15,.08,.1,x,1.03,-5.72,mats.wood,true);
- // Kitchen staircase starts at the service wing and turns into the cellar hall.
- const service=context(floorGroups.ground);for(let i=0;i<13;i++){service.box(1.2,.08,.13,-3.8,-i*.26+.1,-7.73-i*.105,mats.stone);}for(const x of [-4.48,-3.12]){service.box(.06,.78,1.48,x,.55,-8.35,mats.iron);service.box(.08,.06,1.57,x,.96,-8.35,mats.iron);}const cellar=context(floorGroups.basement);for(let i=0;i<12;i++)cellar.box(1.25,.1,.15,-1,.12+i*.3,-7.75-i*.12,mats.stone);
+ for(const staircase of Object.values(staircases)){
+  const group=new THREE.Group();group.name=staircase.id+'-continuous-stair';group.userData.staircase=staircase.id;floorGroups.ground.add(group);
+  stairGroups.push({id:staircase.id,group,from:staircase.lowerFloor,to:staircase.upperFloor,lowerFloor:staircase.lowerFloor,upperFloor:staircase.upperFloor});
+  const c=context(group),stone=staircase.id==='service',tread=stone?mats.stone:mats.wood,railMat=stone?mats.iron:mats.darkWood;
+  for(const surface of staircase.surfaces){
+   const [l,r,b,f]=surface.bounds,w=r-l,d=f-b,x=(l+r)/2,z=(b+f)/2;
+   if(!surface.axis){
+    c.box(w,.13,d,x,surface.y+.035,z,tread,true);
+    if(!surface.exitFloor){
+     guard(c,[l,surface.y+.1,b],[r,surface.y+.1,b],railMat);
+     guard(c,[l,surface.y+.1,b],[l,surface.y+.1,f],railMat);
+     guard(c,[r,surface.y+.1,b],[r,surface.y+.1,f],railMat);
+     const flights=staircase.surfaces.filter(s=>s.axis&&Math.abs((s.start===f?s.yStart:s.end===f?s.yEnd:Infinity)-surface.y)<.01).sort((a,b)=>a.bounds[0]-b.bounds[0]);
+     for(let i=1;i<flights.length;i++)guard(c,[flights[i-1].bounds[1],surface.y+.1,f],[flights[i].bounds[0],surface.y+.1,f],railMat);
+    }
+    continue;
+   }
+   const length=Math.abs(surface.end-surface.start),count=Math.max(1,Math.ceil(Math.abs(surface.yEnd-surface.yStart)/.16)),depth=length/count;
+   for(let i=0;i<count;i++){
+    const t=(i+.5)/count,coordinate=surface.start+(surface.end-surface.start)*t,y=surface.yStart+(surface.yEnd-surface.yStart)*t;
+    if(surface.axis==='z'){
+     c.box(w,.12,depth+.01,x,y+.04,coordinate,tread,true);
+     c.box(w,.025,.035,x,y+.097,coordinate-Math.sign(surface.end-surface.start)*depth*.43,stone?mats.iron:mats.trim);
+    }else{
+     c.box(depth+.01,.12,d,coordinate,y+.04,z,tread,true);
+     c.box(.035,.025,d,coordinate-Math.sign(surface.end-surface.start)*depth*.43,y+.097,z,stone?mats.iron:mats.trim);
+    }
+   }
+   if(surface.axis==='z')for(const side of [l,r]){
+    guard(c,[side,surface.yStart+.1,surface.start],[side,surface.yEnd+.1,surface.end],railMat);
+    c.beam([side,surface.yStart-.09,surface.start],[side,surface.yEnd-.09,surface.end],stone?.065:.085,railMat);
+   }else for(const side of [b,f])guard(c,[surface.start,surface.yStart+.1,side],[surface.end,surface.yEnd+.1,side],railMat);
+  }
+ }
+ // Fixed floor-level guards protect the shaft edges without closing the
+ // actual entrance or exit. The upper west edge is not a stair entrance.
+ const upperGuard=context(floorGroups.upper);for(const x of [-2.55,2.55])guard(upperGuard,[x,.1,-9.4],[x,.1,-5.5]);guard(upperGuard,[-2.55,.1,-5.5],[-.275,.1,-5.5]);
+ const kitchenGuard=context(floorGroups.ground);for(const x of [-4.5,-3.1])guard(kitchenGuard,[x,.1,-9.35],[x,.1,-5.5],mats.iron);guard(kitchenGuard,[-4.5,.1,-9.35],[-3.1,.1,-9.35],mats.iron);
+ // The east grand flight rises from its rear turn; a low screen closes its
+ // ground-level underside while the west bottom flight remains fully open.
+ const hallGuard=context(floorGroups.ground);guard(hallGuard,[.275,.1,-5.5],[2.325,.1,-5.5]);
  // Room accents add readable function and story without filling walkways.
  for(const id of ['foyer','grandHall','dining','library','landing','bedroom','gallery']){
   const r=roomLayouts[id],c=context(floorGroups[r.floor]);if(['dining','library','grandHall'].includes(id)){const x=r.pos[0],z=r.pos[1];c.cyl(.028,.72,x,3.18,z,mats.brass);c.ring(.49,x,2.84,z,mats.brass,Math.PI/2);for(let i=0;i<5;i++){const a=i*Math.PI*2/5;candle(c,x+Math.cos(a)*.47,2.82,z+Math.sin(a)*.47);}}
@@ -169,5 +209,5 @@ export function buildMansion(THREE,floorGroups,fogMaterial){
  // Flush all static geometry. A few animated props remain independent meshes.
  for(const {parent,mat,parts}of buckets.values()){const geometry=mergeGeometries(parts,false);if(geometry){const mesh=new THREE.Mesh(geometry,mat);mesh.castShadow=true;mesh.receiveShadow=true;parent.add(mesh);}for(const part of parts)part.dispose();}
  for(const g of geometryCache.values())g.dispose();for(const g of [boxGeo,sphereGeo,cylinderGeo,torusGeo])g.dispose();
- return {door:hidden,pendulum,letter:evidence.letter,ledger:evidence.ledger,envelope,bag,occludingWalls,roomLights,materials:[...materialCache.values()],bounds:MANSION_BOUNDS};
+ return {door:hidden,pendulum,letter:evidence.letter,ledger:evidence.ledger,envelope,bag,occludingWalls,roomLights,stairGroups,materials:[...materialCache.values()],bounds:MANSION_BOUNDS};
 }

@@ -1,0 +1,109 @@
+{
+  "date": "2026-10-01T11:00:54.386Z",
+  "url": "https://d3imrhbpvqr1t2.cloudfront.net",
+  "release": "rc6-2026-10-01T10-55-07-301Z",
+  "version": "1.0.0-rc.6",
+  "lambdaVersion": "14",
+  "invalidation": {
+    "id": "IAVYFODJK12GBNEGD4KP0NM4IR",
+    "status": "Completed"
+  },
+  "automated": {
+    "pass": 55,
+    "total": 55,
+    "build": true,
+    "productionAuditVulnerabilities": 0
+  },
+  "http": {
+    "pass": 35,
+    "total": 35,
+    "bundleMatchesLocal": true
+  },
+  "localUi": {
+    "realKeyboardAndPointer": true,
+    "supportedSaveImports": true,
+    "checks": [
+      "Grand staircase climbed and descended through rear turn with continuous heights",
+      "Service staircase descended and climbed through rear turn with continuous heights",
+      "Floor identity changed at destination and no E stair action was used",
+      "Crouch keyboard/mobile state and visible articulated posture",
+      "Shift+W accepted; exact walk/run/crouch duration and speed validated by automated tests",
+      "I opens bag; evidence/settings accessible; modal suppresses movement",
+      "Lin memory opened upstairs, solved payer observation, recorded receipt, returned to prior x/z in library",
+      "Completed-case fixture reached distance ending and epilogue closed both windows",
+      "Fresh restart reopens intro and enters foyer with zero evidence"
+    ],
+    "viewports": [
+      [
+        1248,
+        704
+      ],
+      [
+        390,
+        844
+      ],
+      [
+        304,
+        923
+      ]
+    ],
+    "narrowDocument": {
+      "client": 304,
+      "scroll": 304
+    },
+    "consoleErrors": [],
+    "consoleWarnings": []
+  },
+  "publicUi": {
+    "checks": [
+      "Settings reports rc6 and previous-story export remains available",
+      "Tab and B bag access, Escape close, native Tab focus moves from close to notes",
+      "Real touch movement reaches grand stairs at x=-1.207,y=.753,z=-6.579 without E",
+      "Crouch toggle synchronizes mobile aria-pressed",
+      "M map and all three floor tabs",
+      "Graphics high/low/high compiles without console warning/error",
+      "Fresh restart, intro skip, foyer0/14, input idle, high graphics restored"
+    ],
+    "viewports": [
+      [
+        1248,
+        704
+      ],
+      [
+        390,
+        844
+      ]
+    ],
+    "desktopDocument": {
+      "client": 1248,
+      "scroll": 1248
+    },
+    "consoleErrors": [],
+    "consoleWarnings": [],
+    "final": {
+      "room": "foyer",
+      "floor": "ground",
+      "x": 0,
+      "y": 0,
+      "z": 8.1,
+      "walking": false,
+      "viewportOverrideReset": true
+    }
+  },
+  "monitoring": {
+    "queriedWindowMinutes": 15,
+    "availableErrorDatapoints": 1,
+    "errorSum": 0,
+    "scope": "Short deployment observation; not a fifteen-minute sustained watch or uptime guarantee"
+  },
+  "screenshots": [
+    "screenshots/actions-gameplay.png",
+    "screenshots/investigator-bag.png"
+  ],
+  "limitations": [
+    "Supported fixtures supplied progress for targeted UI checks; this is not a fresh-case full UI replay",
+    "Physical phone/GPU performance and independent playtesting not certified",
+    "Character models remain stylized"
+  ],
+  "pass": true
+}

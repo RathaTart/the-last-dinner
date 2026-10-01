@@ -1,4 +1,4 @@
-Current release: [1.0.0-rc.5 mansion redesign](RELEASE-rc5.md). Earlier release notes follow below.
+Current release: [1.0.0-rc.6 movement and investigator’s bag](RELEASE-rc6.md). Earlier release notes follow below.
 
 # Release candidate 1.0.0-rc.1
 

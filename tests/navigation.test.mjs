@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {moveInvestigator,walkable,roomAt,cameraMovement,nearestInteraction,passages,roomSpawn,WALK_SPEED,INTERACTION_RANGE} from '../navigation.js';
-import {roomLayouts,walls,doors,furniture,evidencePositions,npcStations,npcRooms,npcRoutes,doorGraph,floorY} from '../mansion-layout.js';
+import {moveInvestigator,walkable,roomAt,cameraMovement,nearestInteraction,passages,roomSpawn,WALK_SPEED,RUN_SPEED,CROUCH_SPEED,INTERACTION_RANGE,stairSurfaceAt} from '../navigation.js';
+import {roomLayouts,walls,doors,furniture,evidencePositions,npcStations,npcRooms,npcRoutes,doorGraph,floorY,staircases} from '../mansion-layout.js';
 
 function flood(floor,secretOpen=false){
  const spawn=floor==='ground'?roomSpawn('foyer'):floor==='upper'?passages.up.spawn:passages.down.spawn;
@@ -35,7 +35,7 @@ test('rendered partitions block movement and their actual door openings permit c
  p={x:-7.4,z:5.2};for(let i=0;i<40;i++)p=moveInvestigator(p,{x:0,z:-1},.04);
  assert.ok(p.z>=3.3+2.3/2+.2-1e-6,'table footprint stops movement');assert.ok(walkable(p.x,p.z));
  for(const wall of walls){assert.equal(walkable(wall.x,wall.z,{floor:wall.floor,secretOpen:true}),false,'render wall is solid');}
- for(const door of doors.filter(d=>d.rooms.length===2&&!d.locked))assert.ok(walkable(door.pos[0],door.pos[1],{floor:door.floor,secretOpen:true}),door.id+' opening');
+ for(const door of doors.filter(d=>d.rooms.length===2&&!d.locked&&!d.stairOpening))assert.ok(walkable(door.pos[0],door.pos[1],{floor:door.floor,secretOpen:true}),door.id+' opening');
 });
 
 test('walking preserves speed, diagonal normalization, frame cap and house boundaries',()=>{
@@ -49,7 +49,7 @@ test('walking preserves speed, diagonal normalization, frame cap and house bound
 });
 
 test('actual doorway bases block edge clipping while the centre remains open',()=>{
- for(const d of doors.filter(d=>d.rooms.length===2)){
+ for(const d of doors.filter(d=>d.rooms.length===2&&!d.stairOpening)){
   assert.ok(d.width-.25>.4,'opening still clears player diameter: '+d.id);
   for(const side of [-1,1]){
    // This point clears the nominal plaster-wall corner, but the player's
@@ -139,4 +139,63 @@ test('furniture and circulation topology use the shared architectural source',()
  for(const [id,p]of Object.entries(passages).filter(([,p])=>p.to)){
   const destination=roomLayouts[p.to];assert.equal(roomAt({x:p.spawn[0],z:p.spawn[1]},destination.floor),p.to,id+' destination');assert.ok(walkable(...p.spawn,{floor:destination.floor}),id+' landing');
  }
+});
+
+function walkRoute(initial,waypoints,{mode='walk',dt=.04}={}){
+ let p={...initial},travel=0,frames=0;const samples=[p],speed=mode==='run'?RUN_SPEED:mode==='crouch'?CROUCH_SPEED:WALK_SPEED;
+ for(const [x,y,z]of waypoints){
+  let attempts=0;
+  while(Math.hypot(p.x-x,p.z-z)>.045){
+   const remaining=Math.hypot(p.x-x,p.z-z),stepDt=Math.min(dt,remaining/speed),next=moveInvestigator(p,{x:x-p.x,z:z-p.z},stepDt,{floor:p.floor,staircase:p.staircase,continuous:true,mode});
+   const distance=Math.hypot(next.x-p.x,next.y-p.y,next.z-p.z);assert.ok(distance<=speed*stepDt+1e-7,'3D speed budget');
+   assert.ok(distance>1e-7,'route must keep moving at '+JSON.stringify(p)+' toward '+[x,y,z]);
+   if(next.floor!==p.floor)assert.ok(Math.abs(next.y-floorY[next.floor])<1e-8,'floor changes only at matching height');
+   travel+=distance;p=next;frames++;samples.push(p);assert.ok(++attempts<1000,'finite route');
+  }
+  assert.ok(Math.abs(p.y-y)<.05,'route height matches landing or endpoint');
+ }
+ return {p,travel,frames,samples};
+}
+
+test('grand dogleg can be climbed and descended continuously without a button or teleport',()=>{
+ const up=walkRoute({x:-1.3,y:0,z:-4.7,floor:'ground',staircase:null},[[-1.3,0,-5.5],[-1.3,2.2,-8.95],[1.3,2.2,-8.95],[1.3,4.4,-5.5],[1.3,4.4,-4.7]]);
+ assert.equal(up.p.floor,'upper');assert.equal(up.p.room,'landing');assert.equal(up.p.staircase,null);
+ assert.ok(up.samples.some(p=>p.y>.4&&p.y<1.8));assert.ok(up.samples.some(p=>p.y>2.6&&p.y<4));
+ const down=walkRoute(up.p,[[1.3,4.4,-5.5],[1.3,2.2,-8.95],[-1.3,2.2,-8.95],[-1.3,0,-5.5],[-1.3,0,-4.7]]);
+ assert.equal(down.p.floor,'ground');assert.equal(down.p.room,'grandHall');assert.equal(down.p.staircase,null);
+});
+
+test('service dogleg joins kitchen and cellar at continuous heights with a real turn',()=>{
+ const down=walkRoute({x:-3.8,y:0,z:-4.7,floor:'ground'},[[-3.8,0,-5.5],[-3.8,-2.2,-8.95],[-1,-2.2,-8.95],[-1,-4.4,-5.5],[-1,-4.4,-4.7]]);
+ assert.equal(down.p.floor,'basement');assert.equal(down.p.room,'cellarHall');assert.equal(down.p.staircase,null);
+ const up=walkRoute(down.p,[[-1,-4.4,-5.5],[-1,-2.2,-8.95],[-3.8,-2.2,-8.95],[-3.8,0,-5.5],[-3.8,0,-4.7]]);
+ assert.equal(up.p.floor,'ground');assert.equal(up.p.room,'kitchen');
+ assert.ok(doors.find(d=>d.id==='serviceCrossing').stairOpening);
+});
+
+test('run and crouch speeds are consistent on flat ground and full 3D stair slopes',()=>{
+ for(const [mode,speed]of [['walk',WALK_SPEED],['run',RUN_SPEED],['crouch',CROUCH_SPEED]]){
+  const flat={x:0,y:0,z:3.1,floor:'ground'},m=moveInvestigator(flat,{x:1,z:1},.05,{continuous:true,mode});
+  assert.ok(Math.abs(Math.hypot(m.x-flat.x,m.y-flat.y,m.z-flat.z)-speed*.05)<1e-7);
+  const slope={x:-1.3,y:2.2*.7/3.15,z:-6.2,floor:'ground',staircase:'grand'},s=moveInvestigator(slope,{x:0,z:-1},.05,{continuous:true,mode});
+  assert.ok(Math.abs(Math.hypot(s.x-slope.x,s.y-slope.y,s.z-slope.z)-speed*.05)<1e-7,mode+' speed follows 3D surface');
+ }
+ const route=[[-1.3,0,-5.5],[-1.3,2.2,-8.95],[1.3,2.2,-8.95],[1.3,4.4,-5.5],[1.3,4.4,-4.7]],start={x:-1.3,y:0,z:-4.7,floor:'ground'};
+ const walked=walkRoute(start,route),ran=walkRoute(start,route,{mode:'run'});assert.ok(ran.frames<walked.frames*.65,'run reaches upstairs faster');
+});
+
+test('stair sides, shaft void and wrong-height flights cannot be entered or exited in midair',()=>{
+ const slope={x:-1.3,y:1.1,z:-7.075,floor:'ground',staircase:'grand'};
+ let side=slope;for(let i=0;i<80;i++)side=moveInvestigator(side,{x:1,z:0},.05,{continuous:true});
+ assert.ok(side.x<=-.275-.19);assert.ok(Math.abs(side.y-1.1)<1e-8);
+ const below={x:1.3,y:0,z:-5.05,floor:'ground'},blocked=moveInvestigator(below,{x:0,z:-1},.1,{continuous:true});
+ assert.ok(blocked.z>=-5.3-1e-8,'wrong-height upper flight remains solid from below');assert.equal(blocked.y,0);
+ const voidStart={x:0,y:4.4,z:-5.05,floor:'upper'},voidStep=moveInvestigator(voidStart,{x:0,z:-1},.1,{continuous:true});assert.ok(voidStep.z>=-5.3-1e-8);
+ assert.equal(stairSurfaceAt({x:1.3,y:0,z:-7,floor:'ground'}),null);
+});
+
+test('stationary and invalid continuous input preserves height, floor, room and stair context',()=>{
+ const p={x:-1.3,y:1.1,z:-7.075,floor:'ground',staircase:'grand'};
+ for(const [dir,dt]of [[{x:0,z:0},.1],[{x:1,z:0},NaN]])assert.deepEqual(moveInvestigator(p,dir,dt,{continuous:true}),{...p,room:'grandHall'});
+ assert.ok(Object.values(staircases).every(s=>s.surfaces.every(p=>Number.isFinite(p.y)||Number.isFinite(p.yStart)&&Number.isFinite(p.yEnd))));
 });

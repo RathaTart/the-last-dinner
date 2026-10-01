@@ -11,11 +11,11 @@ export const roomLayouts={
  kitchen:space('ground',[-12,-2.8,-9.5,-1.5],[-4.2,-4.9]),
  workshop:space('ground',[2.8,12,-9.5,-1.5],[4.2,-4.9]),
  library:space('ground',[2.8,12,-1.5,9.5],[4.2,3.1]),
- landing:space('upper',[-2.8,2.8,-9.5,9.5],[0,-5.5]),
+ landing:space('upper',[-2.8,2.8,-9.5,9.5],[1.3,-5.05]),
  bedroom:space('upper',[-12,-2.8,-1.5,9.5],[-4.2,3.1]),
  infirmary:space('upper',[-12,-2.8,-9.5,-1.5],[-4.2,-4.9]),
  gallery:space('upper',[2.8,12,-9.5,9.5],[4.2,3.1]),
- cellarHall:space('basement',[-2.8,2.8,-9.5,9.5],[-1,-7]),
+ cellarHall:space('basement',[-2.8,2.8,-9.5,9.5],[-1,-5.05]),
  mortuary:space('basement',[-12,-2.8,-9.5,9.5],[-4.2,3.1]),
  boiler:space('basement',[2.8,12,-9.5,-1.5],[4.2,-4.9]),
  sealed:space('basement',[2.8,12,-1.5,9.5],[8.8,-.3])
@@ -35,11 +35,12 @@ export const doors=[
  door('landingGallerySouth','upper',['landing','gallery'],'z',[2.8,3.1],2),
  door('cellarMortuary','basement',['cellarHall','mortuary'],'z',[-2.8,3.1],2),
  door('cellarBoiler','basement',['cellarHall','boiler'],'z',[2.8,-4.9],2),
- door('hiddenPanel','basement',['boiler','sealed'],'x',[8.8,-1.5],2.1,true)
+ door('hiddenPanel','basement',['boiler','sealed'],'x',[8.8,-1.5],2.1,true),
+ {...door('serviceCrossing','basement',['mortuary','cellarHall'],'z',[-2.8,-8.6],1.6),stairOpening:true}
 ];
 // Door jamb bases are wider/deeper than plaster walls; preserve their actual
 // .25 m × .47 m footprints so legs do not clip through decorative trim.
-export const doorFrameObstacles=Object.fromEntries(Object.keys(floorY).map(floor=>[floor,doors.filter(d=>d.floor===floor).flatMap(d=>[-1,1].map(side=>{
+export const doorFrameObstacles=Object.fromEntries(Object.keys(floorY).map(floor=>[floor,doors.filter(d=>d.floor===floor&&!d.stairOpening).flatMap(d=>[-1,1].map(side=>{
  const x=d.pos[0]+(d.axis==='x'?side*d.width/2:0),z=d.pos[1]+(d.axis==='z'?side*d.width/2:0),hx=d.axis==='x'?.125:.235,hz=d.axis==='x'?.235:.125;
  return [x-hx,x+hx,z-hz,z+hz];
 }))]));
@@ -142,22 +143,46 @@ export const npcRoutes={
  witness:[[-7.2,4.3],[-4.5,5.7],[-10.2,5.7]],
  caretaker:[[8,-4.4],[9.8,-3.6],[5.2,-5.7]]
 };
-// Grand dogleg stair flights occupy the rear hall. The upstairs aperture is
-// intentionally non-walkable; E changes floors from its safe front landing.
+// Exact walkable height planes. Rendering uses these same bounds and rises.
+// Approach planes connect stair widths to the normal floor without a jump.
+const flight=(id,bounds,start,end,yStart,yEnd)=>({id,bounds,axis:'z',start,end,yStart,yEnd});
+const platform=(id,bounds,y,exitFloor)=>({id,bounds,y,...(exitFloor?{exitFloor}:{})});
+export const staircases={
+ grand:{id:'grand',lowerFloor:'ground',upperFloor:'upper',lowerRoom:'grandHall',upperRoom:'landing',
+  lowerEndpoint:[-1.3,0,-5.05],upperEndpoint:[1.3,4.4,-5.05],
+  surfaces:[
+   platform('grandLowerApproach',[-2.325,-.275,-5.5,-4.95],0,'ground'),
+   flight('grandLowerFlight',[-2.325,-.275,-8.65,-5.5],-5.5,-8.65,0,2.2),
+   platform('grandTurn',[-2.35,2.35,-9.35,-8.65],2.2),
+   flight('grandUpperFlight',[.275,2.325,-8.65,-5.5],-8.65,-5.5,2.2,4.4),
+   platform('grandUpperApproach',[.275,2.325,-5.5,-4.95],4.4,'upper')
+  ]},
+ service:{id:'service',lowerFloor:'basement',upperFloor:'ground',lowerRoom:'cellarHall',upperRoom:'kitchen',
+  lowerEndpoint:[-1,-4.4,-5.05],upperEndpoint:[-3.8,0,-5.05],
+  surfaces:[
+   platform('serviceUpperApproach',[-4.5,-3.1,-5.5,-4.95],0,'ground'),
+   flight('serviceUpperFlight',[-4.5,-3.1,-8.65,-5.5],-5.5,-8.65,0,-2.2),
+   platform('serviceTurn',[-4.5,-.3,-9.35,-8.65],-2.2),
+   flight('serviceLowerFlight',[-1.7,-.3,-8.65,-5.5],-8.65,-5.5,-2.2,-4.4),
+   platform('serviceLowerApproach',[-1.7,-.3,-5.5,-4.95],-4.4,'basement')
+  ]}
+};
+// The flat controller used by NPCs cannot enter stair shafts. The continuous
+// player controller replaces these footprints with the supported height planes.
 export const stairObstacles={
  ground:[
-  [-2.45,-.25,-9.1,-5.8],[.25,2.45,-9.1,-5.8],
+  [-2.45,-.25,-9.35,-5.5],[.25,2.45,-9.35,-5.5],
   [-2.42,-2.28,-5.69,-5.55],[2.28,2.42,-5.69,-5.55],
-  [-4.6,-3.1,-8.9,-7.7],[-4.52,-4.44,-9.135,-7.565],[-3.16,-3.08,-9.135,-7.565]
+  [-4.5,-3.1,-9.35,-5.5]
  ],
- upper:[[-2.55,2.55,-9.4,-5.8],[-2.475,-.325,-5.77,-5.67],[.325,2.475,-5.77,-5.67]],
- basement:[[-1.625,-.375,-9.145,-7.65]]
+ upper:[[-2.55,2.55,-9.4,-5.5]],
+ basement:[[-1.7,-.3,-9.35,-5.5],[-4.5,-1.7,-9.35,-8.65]]
 };
 export const passages={
- up:{room:'grandHall',floor:'ground',pos:[0,1,-5.5],to:'landing',spawn:[0,-5.5],th:'บันไดใหญ่ · ขึ้นชั้นสอง',en:'Grand staircase · upstairs'},
- down:{room:'kitchen',floor:'ground',pos:[-3.8,1,-7],to:'cellarHall',spawn:[-1,-7],th:'บันไดคนรับใช้ · ลงใต้ดิน',en:'Service staircase · cellar'},
- upstairsReturn:{room:'landing',floor:'upper',pos:[0,1,-5.5],to:'grandHall',spawn:[0,-5.5],th:'บันไดใหญ่ · ลงชั้นล่าง',en:'Grand staircase · downstairs'},
- cellarReturn:{room:'cellarHall',floor:'basement',pos:[-1,1,-7],to:'kitchen',spawn:[-3.8,-7],th:'บันไดคนรับใช้ · ขึ้นครัว',en:'Service staircase · kitchen'},
+ up:{room:'grandHall',floor:'ground',pos:[-1.3,1,-5.05],to:'landing',spawn:[1.3,-5.05],th:'บันไดใหญ่ · ขึ้นชั้นสอง',en:'Grand staircase · upstairs'},
+ down:{room:'kitchen',floor:'ground',pos:[-3.8,1,-5.05],to:'cellarHall',spawn:[-1,-5.05],th:'บันไดคนรับใช้ · ลงใต้ดิน',en:'Service staircase · cellar'},
+ upstairsReturn:{room:'landing',floor:'upper',pos:[1.3,1,-5.05],to:'grandHall',spawn:[-1.3,-5.05],th:'บันไดใหญ่ · ลงชั้นล่าง',en:'Grand staircase · downstairs'},
+ cellarReturn:{room:'cellarHall',floor:'basement',pos:[-1,1,-5.05],to:'kitchen',spawn:[-3.8,-5.05],th:'บันไดคนรับใช้ · ขึ้นครัว',en:'Service staircase · kitchen'},
  secret:{room:'boiler',floor:'basement',pos:[8.8,1.1,-1.9],th:'ผนังลับ · เสียงเคาะ',en:'Hidden panel · the knocks'}
 };
 export const doorGraph=Object.fromEntries(Object.keys(roomLayouts).map(id=>[id,doors.filter(d=>d.rooms.includes(id)&&d.rooms.length===2).map(d=>({to:d.rooms.find(other=>other!==id),door:d.id,locked:d.locked}))]));
